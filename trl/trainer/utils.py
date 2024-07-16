@@ -31,6 +31,7 @@ from transformers import (
     PreTrainedTokenizerBase,
 )
 
+from ..extras.prompt_based_reward_model import Scorer
 from ..import_utils import is_peft_available, is_unsloth_available, is_xpu_available
 from ..trainer.model_config import ModelConfig
 
@@ -100,7 +101,9 @@ class DataCollatorForCompletionOnlyLM(DataCollatorForLanguageModeling):
         self.instruction_template = instruction_template
         if isinstance(instruction_template, str):
             # The user provides a string, must tokenize
-            self.instruction_token_ids = self.tokenizer.encode(self.instruction_template, add_special_tokens=False)
+            self.instruction_token_ids = self.tokenizer.encode(
+                self.instruction_template, add_special_tokens=False
+            )
         else:
             # The user already provides the token ids
             self.instruction_token_ids = instruction_template
@@ -108,12 +111,18 @@ class DataCollatorForCompletionOnlyLM(DataCollatorForLanguageModeling):
         self.response_template = response_template
         if isinstance(response_template, str):
             # The user provides a string, must tokenize
-            self.response_token_ids = self.tokenizer.encode(self.response_template, add_special_tokens=False)
+            self.response_token_ids = self.tokenizer.encode(
+                self.response_template, add_special_tokens=False
+            )
         else:
             # The user already provides the token ids
             self.response_token_ids = response_template
 
-        if not self.mlm and self.instruction_template and self.tokenizer.pad_token_id == self.tokenizer.eos_token_id:
+        if (
+            not self.mlm
+            and self.instruction_template
+            and self.tokenizer.pad_token_id == self.tokenizer.eos_token_id
+        ):
             warnings.warn(
                 "The pad_token_id and eos_token_id values of this tokenizer are identical. "
                 "If you are planning for multi-turn training, "
@@ -123,18 +132,24 @@ class DataCollatorForCompletionOnlyLM(DataCollatorForLanguageModeling):
 
         self.ignore_index = ignore_index
 
-    def torch_call(self, examples: List[Union[List[int], Any, Dict[str, Any]]]) -> Dict[str, Any]:
+    def torch_call(
+        self, examples: List[Union[List[int], Any, Dict[str, Any]]]
+    ) -> Dict[str, Any]:
         batch = super().torch_call(examples)
 
         if self.instruction_template is None:
             for i in range(len(examples)):
                 response_token_ids_start_idx = None
 
-                for idx in np.where(batch["labels"][i] == self.response_token_ids[0])[0]:
+                for idx in np.where(batch["labels"][i] == self.response_token_ids[0])[
+                    0
+                ]:
                     # `response_token_ids` is `'### Response:\n'`, here we are just making sure that the token IDs match
                     if (
                         self.response_token_ids
-                        == batch["labels"][i][idx : idx + len(self.response_token_ids)].tolist()
+                        == batch["labels"][i][
+                            idx : idx + len(self.response_token_ids)
+                        ].tolist()
                     ):
                         response_token_ids_start_idx = idx
 
@@ -147,7 +162,9 @@ class DataCollatorForCompletionOnlyLM(DataCollatorForLanguageModeling):
                     )
                     batch["labels"][i, :] = self.ignore_index
                 else:
-                    response_token_ids_end_idx = response_token_ids_start_idx + len(self.response_token_ids)
+                    response_token_ids_end_idx = response_token_ids_start_idx + len(
+                        self.response_token_ids
+                    )
 
                     # Make pytorch loss function ignore all tokens up through the end of the response key
                     batch["labels"][i, :response_token_ids_end_idx] = self.ignore_index
@@ -157,13 +174,19 @@ class DataCollatorForCompletionOnlyLM(DataCollatorForLanguageModeling):
                 response_token_ids_idxs = []
                 human_token_ids_idxs = []
 
-                for assistant_idx in np.where(batch["labels"][i] == self.response_token_ids[0])[0]:
+                for assistant_idx in np.where(
+                    batch["labels"][i] == self.response_token_ids[0]
+                )[0]:
                     # find the indexes of the start of a response.
                     if (
                         self.response_token_ids
-                        == batch["labels"][i][assistant_idx : assistant_idx + len(self.response_token_ids)].tolist()
+                        == batch["labels"][i][
+                            assistant_idx : assistant_idx + len(self.response_token_ids)
+                        ].tolist()
                     ):
-                        response_token_ids_idxs.append(assistant_idx + len(self.response_token_ids))
+                        response_token_ids_idxs.append(
+                            assistant_idx + len(self.response_token_ids)
+                        )
 
                 if len(response_token_ids_idxs) == 0:
                     warnings.warn(
@@ -177,7 +200,12 @@ class DataCollatorForCompletionOnlyLM(DataCollatorForLanguageModeling):
                 human_token_ids = self.instruction_token_ids
                 for human_idx in np.where(batch["labels"][i] == human_token_ids[0])[0]:
                     # find the indexes of the start of a human answer.
-                    if human_token_ids == batch["labels"][i][human_idx : human_idx + len(human_token_ids)].tolist():
+                    if (
+                        human_token_ids
+                        == batch["labels"][i][
+                            human_idx : human_idx + len(human_token_ids)
+                        ].tolist()
+                    ):
                         human_token_ids_idxs.append(human_idx)
 
                 if len(human_token_ids_idxs) == 0:
@@ -196,7 +224,9 @@ class DataCollatorForCompletionOnlyLM(DataCollatorForLanguageModeling):
                 ):
                     human_token_ids_idxs = [0] + human_token_ids_idxs
 
-                for idx, (start, end) in enumerate(zip(human_token_ids_idxs, response_token_ids_idxs)):
+                for idx, (start, end) in enumerate(
+                    zip(human_token_ids_idxs, response_token_ids_idxs)
+                ):
                     # Make pytorch loss function ignore all non response tokens
                     if idx != 0:
                         batch["labels"][i, start:end] = self.ignore_index
@@ -291,7 +321,9 @@ class RewardDataCollatorWithPadding:
         return batch
 
 
-def pad(tensors: List[torch.Tensor], padding_value: int = 0, padding_side: str = "right") -> torch.Tensor:
+def pad(
+    tensors: List[torch.Tensor], padding_value: int = 0, padding_side: str = "right"
+) -> torch.Tensor:
     """
     Pads a list of tensors to the same shape along the first dimension.
 
@@ -323,7 +355,12 @@ def pad(tensors: List[torch.Tensor], padding_value: int = 0, padding_side: str =
     output_shape = np.max([t.shape for t in tensors], 0).tolist()
 
     # Create an output tensor filled with the padding value
-    output = torch.full((len(tensors), *output_shape), padding_value, dtype=tensors[0].dtype, device=tensors[0].device)
+    output = torch.full(
+        (len(tensors), *output_shape),
+        padding_value,
+        dtype=tensors[0].dtype,
+        device=tensors[0].device,
+    )
 
     for i, t in enumerate(tensors):
         # Determine the slice for the sequence dimension
@@ -361,7 +398,9 @@ class DPODataCollatorWithPadding:
         # first, pad everything to the same length
         padded_batch = {}
         for k in features[0].keys():
-            if k.endswith(("_input_ids", "_attention_mask", "_labels", "_pixel_values")):
+            if k.endswith(
+                ("_input_ids", "_attention_mask", "_labels", "_pixel_values")
+            ):
                 if self.is_encoder_decoder:
                     to_pad = [torch.LongTensor(ex[k]) for ex in features]
 
@@ -375,11 +414,15 @@ class DPODataCollatorWithPadding:
                         padding_value = self.pad_token_id
                     elif k.endswith("_attention_mask"):
                         padding_value = 0
-                    elif k.startswith(("chosen", "rejected", "completion")) or ("decoder" in k):
+                    elif k.startswith(("chosen", "rejected", "completion")) or (
+                        "decoder" in k
+                    ):
                         padding_value = self.label_pad_token_id
                     else:
                         raise ValueError(f"Unexpected key in batch '{k}'")
-                    padded_batch[k] = pad_sequence(to_pad, batch_first=True, padding_value=padding_value)
+                    padded_batch[k] = pad_sequence(
+                        to_pad, batch_first=True, padding_value=padding_value
+                    )
                 else:
                     # Set padding value based on the key
                     if k.endswith("_input_ids"):
@@ -407,13 +450,17 @@ class DPODataCollatorWithPadding:
 
                     # Set the dtype
                     if k.endswith("_pixel_values"):
-                        dtype = torch.float32  # will be downcasted if necessary by the Trainer
+                        dtype = (
+                            torch.float32
+                        )  # will be downcasted if necessary by the Trainer
                     else:
                         dtype = torch.int64
 
                     # Convert to tensor and pad
                     to_pad = [torch.tensor(ex[k], dtype=dtype) for ex in features]
-                    padded_batch[k] = pad(to_pad, padding_value=padding_value, padding_side=padding_side)
+                    padded_batch[k] = pad(
+                        to_pad, padding_value=padding_value, padding_side=padding_side
+                    )
             elif k.endswith("_logps"):
                 # the cached reference model logprobs
                 padded_batch[k] = torch.tensor([ex[k] for ex in features])
@@ -480,7 +527,9 @@ class ConstantLengthDataset(IterableDataset):
                 f" to {eos_token_id}. If this is not the correct EOS token, make sure to pass the correct eos_token_id."
             )
 
-        self.concat_token_id = tokenizer.eos_token_id if tokenizer.eos_token_id else eos_token_id
+        self.concat_token_id = (
+            tokenizer.eos_token_id if tokenizer.eos_token_id else eos_token_id
+        )
         self.dataset = dataset
         self.seq_length = seq_length
         self.infinite = infinite
@@ -518,13 +567,15 @@ class ConstantLengthDataset(IterableDataset):
                 except StopIteration:
                     if self.infinite:
                         iterator = iter(self.dataset)
-                        warnings.warn("The dataset reached end and the iterator is reset to the start.")
+                        warnings.warn(
+                            "The dataset reached end and the iterator is reset to the start."
+                        )
                     else:
                         more_examples = False
                         break
-            tokenized_inputs = self.tokenizer(buffer, add_special_tokens=self.add_special_tokens, truncation=False)[
-                "input_ids"
-            ]
+            tokenized_inputs = self.tokenizer(
+                buffer, add_special_tokens=self.add_special_tokens, truncation=False
+            )["input_ids"]
             all_token_ids = []
             for tokenized_input in tokenized_inputs:
                 if self.append_concat_token:
@@ -582,17 +633,24 @@ class RunningMoments:
         self.std = (self.var * tot_count / (tot_count - 1)).float().sqrt()
         self.count = tot_count
 
-        return xs_mean.item(), (xs_var * xs_count / (xs_count - 1)).float().sqrt().item()
+        return (
+            xs_mean.item(),
+            (xs_var * xs_count / (xs_count - 1)).float().sqrt().item(),
+        )
 
 
 @torch.no_grad()
-def get_global_statistics(accelerator, xs: torch.Tensor, mask=None, device="cpu") -> Tuple[float, float, int]:
+def get_global_statistics(
+    accelerator, xs: torch.Tensor, mask=None, device="cpu"
+) -> Tuple[float, float, int]:
     """
     Computes element-wise mean and variance of the tensor across processes. Reference:
     https://github.com/OpenLMLab/MOSS-RLHF/blob/40b91eb2f2b71b16919addede0341d2bef70825d/utils.py#L57C1-L73C75
     """
     xs = xs.to(accelerator.device)
-    sum_and_count = torch.tensor([xs.sum(), (xs.numel() if mask is None else mask.sum())], device=xs.device)
+    sum_and_count = torch.tensor(
+        [xs.sum(), (xs.numel() if mask is None else mask.sum())], device=xs.device
+    )
     sum_and_count = accelerator.reduce(sum_and_count)
     global_sum, count = sum_and_count
     global_mean = global_sum / count
@@ -618,7 +676,9 @@ def compute_accuracy(eval_pred) -> Dict[str, float]:
     return {"accuracy": accuracy}
 
 
-def pad_to_length(tensor: torch.Tensor, length: int, pad_value: Union[int, float], dim: int = -1) -> torch.Tensor:
+def pad_to_length(
+    tensor: torch.Tensor, length: int, pad_value: Union[int, float], dim: int = -1
+) -> torch.Tensor:
     if tensor.size(dim) >= length:
         return tensor
     else:
@@ -627,7 +687,8 @@ def pad_to_length(tensor: torch.Tensor, length: int, pad_value: Union[int, float
         return torch.cat(
             [
                 tensor,
-                pad_value * torch.ones(*pad_size, dtype=tensor.dtype, device=tensor.device),
+                pad_value
+                * torch.ones(*pad_size, dtype=tensor.dtype, device=tensor.device),
             ],
             dim=dim,
         )
@@ -642,7 +703,9 @@ def disable_dropout_in_model(model: torch.nn.Module) -> None:
 def exact_div(a, b, custom_error_message=""):
     q = a // b
     if a != q * b:
-        raise ValueError(f"{custom_error_message}, inexact division: {a} / {b} = {a / b}")
+        raise ValueError(
+            f"{custom_error_message}, inexact division: {a} / {b} = {a / b}"
+        )
     return q
 
 
@@ -685,7 +748,10 @@ class PerPromptStatTracker:
         return advantages
 
     def get_stats(self):
-        return {k: {"mean": np.mean(v), "std": np.std(v), "count": len(v)} for k, v in self.stats.items()}
+        return {
+            k: {"mean": np.mean(v), "std": np.std(v), "count": len(v)}
+            for k, v in self.stats.items()
+        }
 
 
 def neftune_post_forward_hook(module, input, output):
@@ -731,7 +797,10 @@ def trl_sanitze_kwargs_for_tagging(model, tag_names, kwargs=None):
     if is_unsloth_available():
         # Unsloth adds a new attribute in the model config `unsloth_version`
         # to keep track of models that have been patched with unsloth.
-        if hasattr(model, "config") and getattr(model.config, "unsloth_version", None) is not None:
+        if (
+            hasattr(model, "config")
+            and getattr(model.config, "unsloth_version", None) is not None
+        ):
             tag_names.append("unsloth")
 
     if kwargs is not None:
@@ -812,7 +881,11 @@ def get_exp_cap(value, decimal=4):
     """
     vdtype_max = torch.zeros([1]).to(value.dtype) + torch.finfo(value.dtype).max
     vdtype_log_max = torch.log(vdtype_max).to(value.device)
-    return torch.floor(vdtype_log_max * 10**decimal) / 10**decimal if decimal > 0 else vdtype_log_max
+    return (
+        torch.floor(vdtype_log_max * 10**decimal) / 10**decimal
+        if decimal > 0
+        else vdtype_log_max
+    )
 
 
 def cap_exp(value, cap=-1):
@@ -834,7 +907,9 @@ def print_rich_table(df: pd.DataFrame) -> Table:
 SIMPLE_SFT_CHAT_TEMPLATE = "{% for message in messages %}{{' ' + message['content']}}{% endfor %}{{ eos_token }}"
 # SIMPLE_SFT_CHAT_TEMPLATE simply ends things with an EOS token, this helps the SFT model learn to end the completions with EOS tokens
 
-SIMPLE_QUERY_CHAT_TEMPLATE = "{% for message in messages %}{{' ' + message['content']}}{% endfor %}"
+SIMPLE_QUERY_CHAT_TEMPLATE = (
+    "{% for message in messages %}{{' ' + message['content']}}{% endfor %}"
+)
 # SIMPLE_QUERY_CHAT_TEMPLATE is a variant of SIMPLE_SFT_CHAT_TEMPLATE, which does not end the content with EOS token. The idea
 # is to have the generated response to end with an EOS token, but the query itself should not end with EOS tokens.
 
@@ -877,12 +952,24 @@ def first_true_indices(bools: torch.Tensor, dtype=torch.long):
             in each row. If no True value is found in a row, returns the length of the row.
     """
     row_len = bools.size(-1)
-    zero_or_index = row_len * (~bools).type(dtype) + torch.arange(row_len, dtype=dtype, device=bools.device)
+    zero_or_index = row_len * (~bools).type(dtype) + torch.arange(
+        row_len, dtype=dtype, device=bools.device
+    )
     return torch.min(zero_or_index, dim=-1).values
 
 
+def get_reward_from_prompt_based_rm(
+    model: Scorer, queries: List[str], responses: List[str]
+) -> List[float]:
+    scores = model.score(queries=queries, responses=responses)
+    return scores
+
+
 def get_reward(
-    model: torch.nn.Module, query_responses: torch.Tensor, pad_token_id: int, context_length: int
+    model: torch.nn.Module,
+    query_responses: torch.Tensor,
+    pad_token_id: int,
+    context_length: int,
 ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
     """
     Computes the reward logits and the rewards for a given model and query responses.
@@ -908,7 +995,8 @@ def get_reward(
     """
     attention_mask = query_responses != pad_token_id
     position_ids = attention_mask.cumsum(1) - attention_mask.long()  # exclusive cumsum
-    lm_backbone = getattr(model, model.base_model_prefix)
+    # lm_backbone = getattr(model, model.base_model_prefix)
+    lm_backbone = model.pretrained_model
     input_ids = torch.masked_fill(query_responses, ~attention_mask, 0)
     output = lm_backbone(
         input_ids=input_ids,
@@ -918,8 +1006,13 @@ def get_reward(
         output_hidden_states=True,
         use_cache=False,  # otherwise mistral-based RM would error out
     )
-    reward_logits = model.score(output.hidden_states[-1])
-    sequence_lengths = first_true_indices(query_responses[:, context_length:] == pad_token_id) - 1 + context_length
+    # reward_logits = model.score(output.hidden_states[-1])
+    reward_logits = model.v_head(output.hidden_states[-1])
+    sequence_lengths = (
+        first_true_indices(query_responses[:, context_length:] == pad_token_id)
+        - 1
+        + context_length
+    )
     # https://github.com/huggingface/transformers/blob/dc68a39c8111217683bf49a4912d0c9018bab33d/src/transformers/models/gpt2/modeling_gpt2.py#L1454
     return (
         reward_logits,
@@ -964,7 +1057,10 @@ def forward(
 
 
 def prepare_deepspeed(
-    model: torch.nn.Module, per_device_train_batch_size: int, fp16: bool = False, bf16: bool = False
+    model: torch.nn.Module,
+    per_device_train_batch_size: int,
+    fp16: bool = False,
+    bf16: bool = False,
 ):
     """
     Prepares the model for training with DeepSpeed (both for stage 2 and 3), configuring the appropriate settings based on the model and
@@ -987,7 +1083,9 @@ def prepare_deepspeed(
     if config_kwargs["zero_optimization"]["stage"] != 3:
         config_kwargs["train_micro_batch_size_per_gpu"] = per_device_train_batch_size
         config_kwargs = {
-            "train_micro_batch_size_per_gpu": config_kwargs["train_micro_batch_size_per_gpu"],
+            "train_micro_batch_size_per_gpu": config_kwargs[
+                "train_micro_batch_size_per_gpu"
+            ],
             "prescale_gradients": False,
             "wall_clock_breakdown": False,
         }
@@ -1002,13 +1100,18 @@ def prepare_deepspeed(
                 if getattr(model.config, "hidden_sizes", None)
                 else getattr(model.config, "hidden_size", None)
             )
-            if hidden_size is not None and config_kwargs["zero_optimization"]["stage"] == 3:
+            if (
+                hidden_size is not None
+                and config_kwargs["zero_optimization"]["stage"] == 3
+            ):
                 # Note that `stage3_prefetch_bucket_size` can produce DeepSpeed messages like: `Invalidate trace cache @ step 0: expected module 1, but got module 0`
                 # This is expected and is not an error, see: https://github.com/microsoft/DeepSpeed/discussions/4081
                 config_kwargs.update(
                     {
-                        "zero_optimization.reduce_bucket_size": hidden_size * hidden_size,
-                        "zero_optimization.stage3_param_persistence_threshold": 10 * hidden_size,
+                        "zero_optimization.reduce_bucket_size": hidden_size
+                        * hidden_size,
+                        "zero_optimization.stage3_param_persistence_threshold": 10
+                        * hidden_size,
                         "zero_optimization.stage3_prefetch_bucket_size": 0,
                     }
                 )
@@ -1036,12 +1139,17 @@ def truncate_response(stop_token_id: int, pad_token_id: int, responses: torch.Te
     trunc_idxs = first_true_indices(responses == stop_token_id).unsqueeze(-1)
     new_size = [1] * (len(responses.size()) - 1) + [responses.shape[1]]
     idxs = torch.arange(responses.shape[1], device=responses.device).view(*new_size)
-    postprocessed_responses = torch.masked_fill(responses, idxs > trunc_idxs, pad_token_id)
+    postprocessed_responses = torch.masked_fill(
+        responses, idxs > trunc_idxs, pad_token_id
+    )
     return postprocessed_responses
 
 
 def generate(
-    lm_backbone: torch.nn.Module, queries: torch.Tensor, pad_token_id: int, generation_config: dict
+    lm_backbone: torch.nn.Module,
+    queries: torch.Tensor,
+    pad_token_id: int,
+    generation_config: dict,
 ) -> Tuple[torch.Tensor, torch.Tensor]:
     """
     Generates sequences from the language model backbone in a way that does not affect padding tokens.

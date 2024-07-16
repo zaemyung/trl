@@ -1,0 +1,19 @@
+Modify and refine the provided Original JSON to conform to the specified Target JSON Format shown below.
+
+### Target JSON Format
+{
+  "syntactic": {
+    "grammar": int,
+    "structure": int
+  },
+  "semantic": {
+    "clarity": int,
+    "relevance": int,
+    "vocabulary": int
+  },
+  "discourse": {
+    "flow": int,
+    "organization": int,
+    "balance": int
+  }
+}
