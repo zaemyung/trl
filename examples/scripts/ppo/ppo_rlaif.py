@@ -4,7 +4,6 @@ import shutil
 from datasets import load_dataset
 from transformers import (
     AutoModelForCausalLM,
-    AutoModelForSequenceClassification,
     AutoTokenizer,
     HfArgumentParser,
 )
@@ -19,18 +18,17 @@ from trl.models.modeling_value_head import AutoModelForCausalLMWithValueHead
 
 """
 accelerate launch --config_file examples/accelerate_configs/deepspeed_zero2.yaml \
-    examples/scripts/ppo/ppo_tldr.py \
-    --output_dir models/minimal/ppo_tldr \
+    examples/scripts/ppo/ppo_rlaif.py \
+    --output_dir models/minimal/ppo_rlaif \
     --learning_rate 3e-6 \
-    --per_device_train_batch_size 2 \
-    --gradient_accumulation_steps 2 \
-    --total_episodes 10000 \
-    --model_name_or_path EleutherAI/pythia-1b-deduped \
-    --sft_model_path cleanrl/EleutherAI_pythia-1b-deduped__sft__tldr \
-    --reward_model_path cleanrl/EleutherAI_pythia-1b-deduped__reward__tldr \
+    --per_device_train_batch_size 16 \
+    --gradient_accumulation_steps 4 \
+    --total_episodes 26013 \
+    --model_name_or_path Qwen/Qwen2-1.5B \
+    --sft_model_path Qwen/Qwen2-1.5B-Instruct \
     --local_rollout_forward_batch_size 4 \
     --non_eos_penalty \
-    --sanity_check \
+    --response_length 400 \
     --stop_token eos
 """
 
