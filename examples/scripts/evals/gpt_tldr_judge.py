@@ -15,7 +15,7 @@ from transformers import HfArgumentParser
 @dataclass
 class LLMJudgeConfig:
     n: int = 64
-    model: str = "gpt-3.5-turbo-0125"
+    model: str = "gpt-4o"
     max_parallel_requests: Optional[int] = None
 
     def __post_init__(self):
@@ -25,6 +25,8 @@ class LLMJudgeConfig:
             self.max_parallel_requests = 11
         elif "gpt-4" in self.model:
             self.max_parallel_requests = 13
+        elif "gpt-4o" in self.model:
+            self.max_parallel_requests = 11
 
 
 @dataclass
@@ -35,19 +37,19 @@ class Args:
 
 
 TEMPLATE = r"""
-Which of the following summaries does a better job of summarizing the most important points in the given forum post, without including unimportant or irrelevant details? Judge based on accuracy, coverage, and coherence.
+Which of the following text does a better job of following the writing instruction given below? Judge based on clarity, coherence, and convincingness.
 
-### Post:
+### Writing Instruction:
 {{post}}
 
-### Summary A:
+### Text A:
 {{response0}}
 
-### Summary B:
+### Text B:
 {{response1}}
 
 ### Instructions:
-FIRST provide a one-sentence comparison of the two summaries, explaining which \
+FIRST provide a one-sentence comparison of the two texts, explaining which \
 you prefer and why. SECOND, on a new line, state only "A" or "B" to indicate your choice. Your response should use the format:
 Comparison: <one-sentence comparison and explanation>
 Preferred: <"A" or "B">
@@ -61,7 +63,9 @@ def llm_judge(ljc: LLMJudgeConfig, df: pd.DataFrame):
     async def process_text(post: str, response0: str, response1: str, i: int):
         text = TEMPLATE.replace("{{post}}", post)
         text = text.replace("{{response0}}", response0)
-        text = text.replace("{{response1}}", response1)  # Ensure this split logic is correct for your data
+        text = text.replace(
+            "{{response1}}", response1
+        )  # Ensure this split logic is correct for your data
 
         async with limiter:
             response = None
@@ -70,7 +74,10 @@ def llm_judge(ljc: LLMJudgeConfig, df: pd.DataFrame):
                     response = await async_client.chat.completions.create(
                         model=ljc.model,
                         messages=[
-                            {"role": "system", "content": "You are a helpful assistant."},
+                            {
+                                "role": "system",
+                                "content": "You are a helpful assistant.",
+                            },
                             {"role": "user", "content": text},
                         ],
                     )
@@ -132,7 +139,9 @@ def llm_judge(ljc: LLMJudgeConfig, df: pd.DataFrame):
 if __name__ == "__main__":
     args, ljc = HfArgumentParser((Args, LLMJudgeConfig)).parse_args_into_dataclasses()
     df = pd.read_csv(args.csv)
-    df["reference_response"] = df["reference_response"].map(lambda x: x.split("<|endoftext|>")[0].strip())
+    df["reference_response"] = df["reference_response"].map(
+        lambda x: x.split("<|endoftext|>")[0].strip()
+    )
     df["prompt"] = df["query"].map(lambda x: x.strip())
     df["response0"] = df["model_response"].map(lambda x: x.strip())
     df["response1"] = df["reference_response"].map(lambda x: x.strip())

@@ -24,6 +24,7 @@ accelerate launch --config_file examples/accelerate_configs/deepspeed_zero2.yaml
     --per_device_train_batch_size 1 \
     --gradient_accumulation_steps 4 \
     --total_episodes 26013 \
+    --base_model Qwen/Qwen2-1.5B \
     --model_name_or_path Qwen/Qwen2-1.5B \
     --sft_model_path Qwen/Qwen2-1.5B-Instruct \
     --local_rollout_forward_batch_size 2 \
