@@ -726,6 +726,8 @@ class PPOv2Trainer(Trainer):
             ):
                 self.generate_completions(sampling=True)
                 torch.cuda.empty_cache()
+                if self.accelerator.is_main_process:
+                    self.save_model(f"{self.args.output_dir}/{update-1}")
             del (
                 query_responses,
                 responses,

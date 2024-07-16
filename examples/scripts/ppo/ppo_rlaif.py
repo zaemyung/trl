@@ -21,14 +21,16 @@ accelerate launch --config_file examples/accelerate_configs/deepspeed_zero2.yaml
     examples/scripts/ppo/ppo_rlaif.py \
     --output_dir models/minimal/ppo_rlaif \
     --learning_rate 3e-6 \
-    --per_device_train_batch_size 16 \
+    --per_device_train_batch_size 1 \
     --gradient_accumulation_steps 4 \
     --total_episodes 26013 \
     --model_name_or_path Qwen/Qwen2-1.5B \
     --sft_model_path Qwen/Qwen2-1.5B-Instruct \
-    --local_rollout_forward_batch_size 4 \
+    --local_rollout_forward_batch_size 2 \
     --non_eos_penalty \
     --response_length 400 \
+    --num_sample_generations 20 \
+    --kl_coef 0.007 \
     --stop_token eos
 """
 
@@ -54,7 +56,9 @@ if __name__ == "__main__":
     base_causal_model = AutoModelForCausalLM.from_pretrained(
         config.sft_model_path, torch_dtype=torch.bfloat16, trust_remote_code=True
     )
-    value_model = AutoModelForCausalLMWithValueHead(pretrained_model=base_causal_model)
+    value_model = AutoModelForCausalLMWithValueHead.from_pretrained(
+        pretrained_model_name_or_path=base_causal_model
+    )
 
     reward_model = Scorer()
 
