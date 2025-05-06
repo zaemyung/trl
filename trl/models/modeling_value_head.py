@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from copy import deepcopy
+
 import torch
 import torch.nn as nn
 from transformers import AutoModelForCausalLM, AutoModelForSeq2SeqLM, is_torch_npu_available, is_torch_xpu_available
@@ -204,7 +206,7 @@ class AutoModelForCausalLMWithValueHead(PreTrainedModelWrapper):
         to the state dictionary of the wrapped model by prepending the key with `v_head.`.
         """
         if not self.is_peft_model:
-            pretrained_model_state_dict = self.pretrained_model.state_dict(*args, **kwargs)
+            pretrained_model_state_dict = deepcopy(self.pretrained_model.state_dict(*args, **kwargs))
         else:
             # if it is a peft model, only save the v_head
             pretrained_model_state_dict = {}

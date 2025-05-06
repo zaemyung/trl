@@ -43,13 +43,16 @@ from transformers import (
     TrainingArguments,
     is_comet_available,
 )
+from transformers.data.data_collator import pad_without_fast_tokenizer_warning
 from transformers.utils import (
+    PaddingStrategy,
     is_peft_available,
     is_torch_mlu_available,
     is_torch_npu_available,
     is_torch_xpu_available,
 )
 
+from ..extras.mpo import RewardModel
 from ..import_utils import is_rich_available
 from ..trainer.model_config import ModelConfig
 
@@ -546,6 +549,72 @@ class DPODataCollatorWithPadding:
                 padded_batch[k] = [ex[k] for ex in features]
 
         return padded_batch
+
+
+@dataclass
+class MPODataCollatorWithPadding:
+    tokenizer: PreTrainedTokenizerBase
+    padding: Union[bool, str, PaddingStrategy] = True
+    max_length: Optional[int] = None
+    pad_to_multiple_of: Optional[int] = None
+    return_tensors: str = "pt"
+
+    # TODO: tidy up variable names
+    def __call__(self, features: list[dict[str, Any]]) -> dict[str, Any]:
+        answers = None
+        if "answer" in features[0]:
+            answers = []
+            for i in range(len(features)):
+                answers.append(features[i]["answer"])
+                del features[i]["answer"]
+
+        solutions = None
+        if "solution" in features[0]:
+            solutions = []
+            for i in range(len(features)):
+                solutions.append(features[i]["solution"])
+                del features[i]["solution"]
+
+        clean_summaries = None
+        if "clean_summary" in features[0]:
+            clean_summaries = []
+            for i in range(len(features)):
+                clean_summaries.append(features[i]["clean_summary"])
+                del features[i]["clean_summary"]
+
+        batch = pad_without_fast_tokenizer_warning(
+            self.tokenizer,
+            features,
+            padding=self.padding,
+            max_length=self.max_length,
+            pad_to_multiple_of=self.pad_to_multiple_of,
+            return_tensors=self.return_tensors,
+        )
+        if "label" in batch:
+            batch["labels"] = batch["label"]
+            del batch["label"]
+        if "label_ids" in batch:
+            batch["labels"] = batch["label_ids"]
+            del batch["label_ids"]
+
+        if answers is not None:
+            answers = [torch.tensor(ids, dtype=torch.long) for ids in answers]
+            answer_batch = pad_sequence(answers, batch_first=True, padding_value=self.tokenizer.eos_token_id)
+            batch["gold_answers"] = answer_batch
+
+        if clean_summaries is not None:
+            clean_summaries = [torch.tensor(ids, dtype=torch.long) for ids in clean_summaries]
+            clean_summary_batch = pad_sequence(
+                clean_summaries, batch_first=True, padding_value=self.tokenizer.eos_token_id
+            )
+            batch["clean_summaries"] = clean_summary_batch
+
+        if solutions is not None:
+            solutions = [torch.tensor(ids, dtype=torch.long) for ids in solutions]
+            solutions_batch = pad_sequence(solutions, batch_first=True, padding_value=self.tokenizer.eos_token_id)
+            batch["solutions"] = solutions_batch
+
+        return batch
 
 
 class ConstantLengthDataset(IterableDataset):
@@ -1192,7 +1261,8 @@ def get_reward(
     """
     attention_mask = query_responses != pad_token_id
     position_ids = attention_mask.cumsum(1) - attention_mask.long()  # exclusive cumsum
-    lm_backbone = getattr(model, model.base_model_prefix)
+    # lm_backbone = getattr(model, model.base_model_prefix)
+    lm_backbone = model.pretrained_model
     input_ids = torch.masked_fill(query_responses, ~attention_mask, 0)
     output = lm_backbone(
         input_ids=input_ids,
@@ -1202,7 +1272,8 @@ def get_reward(
         output_hidden_states=True,
         use_cache=False,  # otherwise mistral-based RM would error out
     )
-    reward_logits = model.score(output.hidden_states[-1])
+    # reward_logits = model.score(output.hidden_states[-1])
+    reward_logits = model.v_head(output.hidden_states[-1])
     sequence_lengths = first_true_indices(query_responses[:, context_length:] == pad_token_id) - 1 + context_length
     # https://github.com/huggingface/transformers/blob/dc68a39c8111217683bf49a4912d0c9018bab33d/src/transformers/models/gpt2/modeling_gpt2.py#L1454
     return (
@@ -1213,6 +1284,16 @@ def get_reward(
         ].squeeze(-1),
         sequence_lengths,
     )
+
+
+def get_reward_for_mpo(
+    model: RewardModel,
+    queries: list[str],
+    responses: list[str],
+    return_evaluations: bool = True,
+    **kwargs: dict[str, Any],
+) -> tuple[float, dict[str, Any]]:
+    return model.score(queries, responses, return_evaluations, **kwargs)
 
 
 def forward(

@@ -1,3 +1,5 @@
+**This repository contains the codebase for the paper, "Toward Evaluative Thinking: Meta Policy Optimization with Evolving Reward Models," implemented using trl version 0.17.**
+
 # TRL - Transformer Reinforcement Learning
 
 <div style="text-align: center">
