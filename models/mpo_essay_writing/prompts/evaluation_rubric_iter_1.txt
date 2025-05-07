@@ -1,0 +1,171 @@
+<rubric>
+<item>
+### Relevance to Task
+- 5: The essay directly addresses the task by presenting a clear and persuasive argument against the claim. It does not deviate from the task requirements and stays focused on the main argument.
+  - Example: "The essay argues that ensuring diversity and inclusivity within existing countries is more important than eliminating 'white' countries, providing a clear and focused argument against the claim."
+- 4: The essay mostly addresses the task but may have minor deviations or lack some focus on the main argument.
+  - Example: "The essay discusses the impracticality of creating new 'white' countries but still addresses the main argument against the claim."
+- 3: The essay partially addresses the task but has significant deviations or lacks focus on the main argument.
+  - Example: "The essay spends a lot of time discussing the concept of 'white' countries without clearly arguing against the claim."
+- 2: The essay barely addresses the task and has major deviations from the main argument.
+  - Example: "The essay focuses on the history of 'white' countries without addressing the claim or providing a counter-argument."
+- 1: The essay does not address the task and is completely off-topic.
+  - Example: "The essay discusses the benefits of diversity without addressing the claim about 'white' countries."
+- 0: The essay is completely irrelevant or incoherent.
+  - Example: "The essay is a rambling discussion about unrelated topics and does not address the task at all."
+
+</item>
+<item>
+### Argumentation and Evidence
+- 5: The essay presents a clear, coherent, and well-structured argument supported by substantial and relevant evidence, including examples, statistics, and logical reasoning.
+  - Example: "The essay argues that ensuring diversity and inclusivity within existing countries is more important than eliminating 'white' countries, providing a clear and focused argument against the claim with examples and statistics."
+- 4: The essay presents a coherent argument but lacks some depth in evidence or logical reasoning.
+  - Example: "The essay argues that ensuring diversity and inclusivity is important but does not provide specific examples or data."
+- 3: The essay presents a somewhat clear argument but lacks substantial evidence or logical reasoning.
+  - Example: "The essay mentions that diversity and inclusivity are important but does not provide specific reasons or examples."
+- 2: The essay presents a weak argument and lacks substantial evidence or logical reasoning.
+  - Example: "The essay argues that diversity and inclusivity are important but does not provide any evidence or reasoning."
+- 1: The essay does not present a clear argument or any evidence.
+  - Example: "The essay is vague and does not provide any clear argument or evidence."
+- 0: The essay does not address the argument at all.
+  - Example: "The essay is completely off-topic and does not address the claim that diversity and inclusivity are important."
+
+</item>
+<item>
+### Use of Evidence
+- 5: The essay provides substantial and relevant evidence to support the argument, including examples, statistics, and logical reasoning.
+  - Example: "The essay uses examples of successful diverse countries and logical reasoning to support the argument against the claim."
+- 4: The essay provides mostly relevant evidence but may lack depth or specificity.
+  - Example: "The essay uses some examples but could provide more specific details or statistics to strengthen the argument."
+- 3: The essay provides some evidence but lacks depth and specificity, making the argument less convincing.
+  - Example: "The essay mentions a few examples but does not provide enough detail or logical reasoning to support the argument."
+- 2: The essay provides minimal evidence and lacks depth, making the argument weak and unconvincing.
+  - Example: "The essay mentions a few examples but does not provide any substantial evidence or logical reasoning."
+- 1: The essay provides no evidence or the evidence is irrelevant to the argument.
+  - Example: "The essay does not provide any evidence to support the argument and relies solely on opinion."
+- 0: The essay provides no evidence or the evidence is completely irrelevant and contradictory.
+  - Example: "The essay provides evidence that contradicts the argument and does not support the claim."
+
+</item>
+<item>
+### Depth of Analysis
+- 5: The essay provides a deep and thorough analysis of the societal, economic, or political implications of the claim, with a nuanced understanding of the issues.
+  - Example: "The essay discusses the societal, economic, and political implications of the claim, providing a nuanced and thorough analysis."
+- 4: The essay provides a mostly thorough analysis but may lack some depth or nuance.
+  - Example: "The essay discusses the societal implications but could delve deeper into the economic and political aspects."
+- 3: The essay provides some analysis but lacks depth and nuance, making the argument less convincing.
+  - Example: "The essay mentions some implications but does not provide a thorough or nuanced analysis."
+- 2: The essay provides minimal analysis and lacks depth, making the argument weak and unconvincing.
+  - Example: "The essay mentions a few implications but does not provide any substantial analysis."
+- 1: The essay provides no analysis or the analysis is superficial and lacks depth.
+  - Example: "The essay does not provide any analysis of the implications and relies solely on opinion."
+- 0: The essay provides no analysis or the analysis is completely superficial and contradictory.
+  - Example: "The essay provides an analysis that contradicts the argument and does not support the claim."
+
+</item>
+<item>
+### Addressing Counterarguments
+- 5: The essay effectively addresses and refutes counterarguments, providing strong rebuttals and logical reasoning.
+  - Example: "The essay acknowledges that some people believe the electoral college makes individual votes irrelevant but provides strong rebuttals and logical reasoning to counter this claim."
+- 4: The essay addresses counterarguments but lacks some depth in rebuttals or logical reasoning.
+  - Example: "The essay acknowledges counterarguments but does not provide strong rebuttals or logical reasoning."
+- 3: The essay partially addresses counterarguments but lacks substantial rebuttals or logical reasoning.
+  - Example: "The essay mentions counterarguments but does not provide substantial rebuttals or logical reasoning."
+- 2: The essay barely addresses counterarguments and lacks substantial rebuttals or logical reasoning.
+  - Example: "The essay mentions counterarguments but does not provide any substantial rebuttals or logical reasoning."
+- 1: The essay does not address counterarguments at all.
+  - Example: "The essay does not mention or address any counterarguments."
+- 0: The essay is completely off-topic and does not address the claim that voting is pointless.
+  - Example: "The essay is completely off-topic and does not address the claim that voting is pointless."
+
+</item>
+<item>
+### Logical Flow and Structure
+- 5: The essay has a clear and logical flow, with well-organized paragraphs and a coherent structure.
+  - Example: "The essay has a clear introduction, body paragraphs that each focus on a specific aspect of the argument, and a conclusion that summarizes the main points."
+- 4: The essay is generally well-structured, but it has some minor issues with transitions or flow.
+  - Example: "The essay has a clear structure but lacks some transitions between paragraphs."
+- 3: The essay is somewhat well-structured, but it has some issues with transitions and flow.
+  - Example: "The essay has a basic structure but lacks clear transitions and a logical flow."
+- 2: The essay has a poor structure with unclear transitions and a lack of logical flow.
+  - Example: "The essay lacks a clear structure and has unclear transitions between ideas."
+- 1: The essay has a very poor structure with no clear transitions or logical flow.
+  - Example: "The essay is poorly structured and lacks any clear transitions or logical flow."
+- 0: The essay does not attempt to structure the argument logically.
+  - Example: "The essay does not have any structure and is a collection of unrelated ideas."
+
+</item>
+<item>
+### Conclusion
+- 5: The essay has a strong and effective conclusion that summarizes the main points and reinforces the argument.
+  - Example: "The essay has a strong conclusion that summarizes the main points and reinforces the argument."
+- 4: The essay has a mostly effective conclusion but lacks some depth in summarizing the main points.
+  - Example: "The essay has a mostly effective conclusion but does not fully summarize the main points."
+- 3: The essay has a somewhat effective conclusion but lacks substantial depth in summarizing the main points.
+  - Example: "The essay has a somewhat effective conclusion but does not fully summarize the main points."
+- 2: The essay has a minimally effective conclusion and lacks substantial depth in summarizing the main points.
+  - Example: "The essay has a minimally effective conclusion and does not fully summarize the main points."
+- 1: The essay has a weak conclusion that does not summarize the main points.
+  - Example: "The essay has a weak conclusion that does not summarize the main points."
+- 0: The essay lacks a conclusion or the conclusion is completely off-topic.
+  - Example: "The essay lacks a conclusion or the conclusion is completely off-topic."
+
+</item>
+<item>
+### Persuasiveness
+- 5: The essay is highly persuasive, with a strong and compelling argument that convinces the reader.
+  - Example: "The essay presents a strong and compelling argument that convincingly refutes the claim."
+- 4: The essay is mostly persuasive but may lack some strength or compelling elements.
+  - Example: "The essay presents a strong argument but could be more compelling with additional evidence or reasoning."
+- 3: The essay is somewhat persuasive but lacks strength and compelling elements, making the argument less convincing.
+  - Example: "The essay presents an argument but lacks the strength and compelling elements to fully convince the reader."
+- 2: The essay is minimally persuasive and lacks strength, making the argument weak and unconvincing.
+  - Example: "The essay presents an argument but lacks the strength and compelling elements to convince the reader."
+- 1: The essay is not persuasive and relies solely on opinion without convincing evidence or reasoning.
+  - Example: "The essay presents an argument but does not provide any convincing evidence or reasoning to support it."
+- 0: The essay is not persuasive and relies on contradictory evidence or reasoning.
+  - Example: "The essay presents an argument that is not persuasive and relies on contradictory evidence or reasoning."
+
+</item>
+<item>
+### Overall Coherence and Discourse
+- 5: The essay is well-structured, coherent, and maintains a clear focus on the task.
+  - Example: "The essay flows logically from the thesis statement to the conclusion, with each paragraph contributing to the overall argument."
+- 4: The essay is somewhat coherent but has some structural issues or digressions.
+  - Example: "The essay has a clear thesis but occasionally veers off-topic."
+- 3: The essay is somewhat coherent but has significant structural issues or digressions.
+  - Example: "The essay has a clear thesis but frequently veers off-topic."
+- 2: The essay is poorly coherent and has significant structural issues or digressions.
+  - Example: "The essay has a clear thesis but frequently veers off-topic and lacks a clear structure."
+- 1: The essay is poorly coherent and has significant structural issues or digressions.
+  - Example: "The essay has a clear thesis but frequently veers off-topic and lacks a clear structure."
+- 0: The essay is incoherent, lacks structure, or is off-topic.
+  - Example: "The essay jumps between unrelated topics without a clear focus."
+
+</item>
+<item>
+### Length and Completeness
+- 0: The essay is significantly shorter than the required length (less than 750 words) and lacks substantial content.
+  - Example: An essay that is only 300 words long and does not provide any substantial argument or evidence.
+- 1: The essay is shorter than the required length (less than 1000 words) but has some content.
+  - Example: An essay that is 800 words long and provides some argument but lacks depth and evidence.
+- 2: The essay meets the required length (1000 words or more) and has substantial content.
+  - Example: An essay that is 1200 words long and provides a detailed argument with evidence and counterarguments.
+
+</item>
+<item>
+### Grammar and Clarity
+- 5: The essay is free of grammatical errors and is written clearly and concisely.
+  - Example: "The essay uses correct grammar and is easy to understand."
+- 4: The essay has minor grammatical errors but is generally clear and concise.
+  - Example: "The essay has a few minor grammatical errors but is still clear."
+- 3: The essay has some grammatical errors that affect clarity.
+  - Example: "The essay has several grammatical errors that make it difficult to understand."
+- 2: The essay has significant grammatical errors that affect clarity.
+  - Example: "The essay has numerous grammatical errors that make it hard to follow."
+- 1: The essay has severe grammatical errors that make it difficult to understand.
+  - Example: "The essay is filled with grammatical errors that obscure the meaning."
+- 0: The essay is completely incomprehensible due to severe grammatical errors.
+  - Example: "The essay is a series of grammatically incorrect sentences that do not convey any meaning."
+
+</item>

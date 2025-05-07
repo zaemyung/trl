@@ -1,0 +1,55 @@
+no analysis or the analysis is completely superficial and contradictory. The analysis is completely absent or contradictory.
+  - **Example**: "The essay provides an analysis that contradicts the argument and does not support the claim."
+
+</item>
+
+<item>
+### Addressing Counterarguments
+- **5**: The essay effectively addresses and refutes counterarguments, providing strong rebuttals and logical reasoning.
+  - **Example**: "The essay acknowledges counterarguments but provides strong rebuttals and logical reasoning to support the claim that cannabis should not remain illegal."
+- **4**: The essay addresses counterarguments but lacks some depth in rebuttals or logical reasoning. The rebuttals are somewhat strong but could be more detailed.
+  - **Example**: "The essay acknowledges counterarguments but does not provide strong rebuttals or logical reasoning."
+- **3**: The essay partially addresses counterarguments but lacks substantial rebuttals or logical reasoning. The rebuttals are weak and lack depth.
+  - **Example**: "The essay mentions counterarguments but does not provide substantial rebuttals or logical reasoning."
+- **2**: The essay barely addresses counterarguments and lacks substantial rebuttals or logical reasoning. The rebuttals are very weak and lack depth.
+  - **Example**: "The essay mentions counterarguments but does not provide any substantial rebuttals or logical reasoning."
+- **1**: The essay does not address counterarguments at all. The essay does not mention or address any counterarguments.
+  - **Example**: "The essay does not mention or address any counterarguments."
+- **0**: The essay is completely off-topic and does not address the claim. The essay is completely irrelevant and does not address the claim.
+  - **Example**: "The essay is completely off-topic and does not address the claim."
+
+</item>
+
+<item>
+### Logical Flow and Structure
+- **5**: The essay has a clear and logical flow, with well-organized paragraphs and a coherent structure.
+  - **Example**: "The essay has a clear introduction, body paragraphs that each focus on a specific aspect of the argument, and a conclusion that summarizes the main points."
+- **4**: The essay is generally well-structured, but it has some minor issues with transitions or flow. The structure is clear but could be more cohesive.
+  - **Example**: "The essay has a clear structure but lacks some transitions between paragraphs."
+- **3**: The essay is somewhat well-structured, but it has some issues with transitions and flow. The structure is basic but lacks clarity.
+  - **Example**: "The essay has a basic structure but lacks clear transitions and a logical flow."
+- **2**: The essay has a poor structure with unclear transitions and a lack of logical flow. The structure is poor and lacks clarity.
+  - **Example**: "The essay has a poor structure with unclear transitions and a lack of logical flow."
+- **1**: The essay has a very poor structure with no transitions and no logical flow. The structure is completely incoherent.
+  - **Example**: "The essay has a very poor structure with no transitions and no logical flow."
+- **0**: The essay is completely incoherent and does not follow any logical structure.
+  - **Example**: "The essay is a rambling discussion with no clear structure."
+
+</item>
+
+<item>
+### Thesis Statement
+- **5**: The essay presents a clear, coherent, and well-defined thesis statement that directly addresses the task requirements. The thesis is not contradictory or vague.
+  - **Example**: "The essay argues that cannabis should not remain illegal because it has significant economic benefits and reduces criminal justice costs, providing a clear and focused thesis statement."
+- **4**: The essay presents a coherent thesis statement but lacks some clarity or specificity. The thesis is somewhat clear but could be more focused.
+  - **Example**: "The essay argues that cannabis should not remain illegal but does not clearly define the reasons, making the thesis somewhat vague."
+- **3**: The essay presents a somewhat clear thesis statement but lacks specificity and focus. The thesis is weak and lacks depth.
+  - **Example**: "The essay mentions that cannabis should not remain illegal but does not provide a clear or focused thesis statement."
+- **2**: The essay presents a weak thesis statement that is unclear and lacks focus. The thesis is poorly defined and lacks depth.
+  - **Example**: "The essay argues that cannabis should not remain illegal but does not provide a clear or focused thesis statement, making it weak."
+- **1**: The essay does not present a clear thesis statement or any thesis at all. The thesis is vague and lacks any support.
+  - **Example**: "The essay does not provide a clear thesis statement and relies solely on vague statements."
+- **0**: The essay does not address the thesis at all. The thesis is completely absent or contradictory.
+  - **Example**: "The essay is completely off-topic and does not address the claim."
+
+</item>

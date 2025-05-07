@@ -1,0 +1,121 @@
+Here is a comprehensive set of scoring criteria for Junior Instructors that consolidates and refines the multiple sets provided:
+
+<rubric>
+<item>
+### Thesis Statement
+- **5**: The essay includes a clear, specific, and relevant thesis statement that directly addresses the prompt and argues against the claim. The thesis is well-articulated and sets a strong foundation for the argument.
+  - **Example**: "The essay begins with a clear thesis statement that argues against the claim that anti-vaxxers and believers in natural medicine should be corrected with compassion instead of public shaming, setting a strong foundation for the argument."
+- **4**: The essay presents a clear thesis statement that addresses the prompt but lacks specificity or relevance. The thesis is somewhat articulated but could be more focused.
+  - **Example**: "The essay has a clear thesis statement that addresses the prompt but lacks specificity and relevance, making it somewhat vague."
+- **3**: The essay presents a somewhat clear thesis statement but lacks clarity and relevance. The thesis is not well-articulated and does not set a strong foundation for the argument.
+  - **Example**: "The essay has a somewhat clear thesis statement but lacks clarity and relevance, making it difficult to follow the argument."
+- **2**: The essay presents a vague thesis statement that does not clearly address the prompt or argue against the claim. The thesis is poorly articulated and does not set a foundation for the argument.
+  - **Example**: "The essay has a vague thesis statement that does not clearly address the prompt or argue against the claim, making it difficult to understand the argument."
+- **1**: The essay lacks a clear thesis statement that addresses the prompt or argues against the claim. The thesis is absent or contradictory.
+  - **Example**: "The essay lacks a clear thesis statement that addresses the prompt or argues against the claim, making it completely off-topic."
+- **0**: The essay is completely irrelevant or incoherent. The thesis statement is completely absent or contradictory.
+  - **Example**: "The essay is a rambling discussion about unrelated topics and does not address the task at all. The thesis statement is completely absent or contradictory."
+
+</item>
+
+<item>
+### Argumentation and Evidence
+- **5**: The essay presents a clear, coherent, and well-structured argument supported by substantial and relevant evidence, including specific examples, statistics, and logical reasoning.
+  - **Example**: "The essay argues against the claim by providing a clear and focused argument with specific examples and statistics, and it uses logical reasoning to support the argument."
+- **4**: The essay presents a coherent argument but lacks some depth in evidence or logical reasoning. The argument is somewhat supported but could be more detailed.
+  - **Example**: "The essay argues against the claim but does not provide specific examples or data to support the argument, making it somewhat weak."
+- **3**: The essay presents a somewhat clear argument but lacks substantial evidence or logical reasoning. The argument is weak and lacks depth.
+  - **Example**: "The essay mentions reasons against the claim but does not provide specific examples or logical reasoning to support the argument, making it weak."
+- **2**: The essay presents a weak argument and lacks substantial evidence or logical reasoning. The argument is poorly supported and lacks depth.
+  - **Example**: "The essay argues against the claim but does not provide any evidence or reasoning to support the argument, making it very weak."
+- **1**: The essay does not present a clear argument or any evidence. The argument is vague and lacks any support.
+  - **Example**: "The essay is vague and does not provide any clear argument or evidence to support the claim."
+- **0**: The essay does not address the argument at all. The essay is completely off-topic and does not address the claim.
+  - **Example**: "The essay is completely off-topic and does not address the claim."
+
+</item>
+
+<item>
+### Use of Evidence
+- **5**: The essay provides substantial and relevant evidence to support the argument, including specific examples, statistics, and logical reasoning.
+  - **Example**: "The essay uses specific examples and statistics to support the argument against the claim, providing substantial and relevant evidence."
+- **4**: The essay provides mostly relevant evidence but may lack depth or specificity. The evidence is somewhat detailed but could be more specific.
+  - **Example**: "The essay uses some examples but could provide more specific details or statistics to strengthen the argument."
+- **3**: The essay provides some evidence but lacks depth and specificity, making the argument less convincing. The evidence is minimal and lacks detail.
+  - **Example**: "The essay mentions a few examples but does not provide enough detail or logical reasoning to support the argument."
+- **2**: The essay provides minimal evidence and lacks depth, making the argument weak and unconvincing. The evidence is very minimal and lacks detail.
+  - **Example**: "The essay mentions a few examples but does not provide any substantial evidence or logical reasoning."
+- **1**: The essay provides no evidence or the evidence is irrelevant to the argument. The evidence is completely absent or irrelevant.
+  - **Example**: "The essay does not provide any evidence to support the argument and relies solely on opinion."
+- **0**: The essay provides no evidence or the evidence is completely irrelevant and contradictory. The evidence is completely absent or contradictory.
+  - **Example**: "The essay provides evidence that contradicts the argument and does not support the claim."
+
+</item>
+
+<item>
+### Depth of Analysis
+- **5**: The essay provides a deep and thorough analysis of the societal, economic, or political implications of the claim, with a nuanced understanding of the issues.
+  - **Example**: "The essay discusses the societal, economic, and political implications of the claim, providing a nuanced and thorough analysis."
+- **4**: The essay provides a mostly thorough analysis but may lack some depth or nuance. The analysis is detailed but could be more nuanced.
+  - **Example**: "The essay discusses the societal implications but could delve deeper into the economic and political aspects."
+- **3**: The essay provides some analysis but lacks depth and nuance, making the argument less convincing. The analysis is superficial and lacks detail.
+  - **Example**: "The essay mentions some implications but does not provide a thorough or nuanced analysis."
+- **2**: The essay provides minimal analysis and lacks depth, making the argument weak and unconvincing. The analysis is very minimal and lacks detail.
+  - **Example**: "The essay mentions a few implications but does not provide any substantial analysis."
+- **1**: The essay provides no analysis or the analysis is superficial and lacks depth. The analysis is completely absent or superficial.
+  - **Example**: "The essay does not provide any analysis of the implications and relies solely on opinion."
+- **0**: The essay provides no analysis or the analysis is completely superficial and contradictory. The analysis is completely absent or contradictory.
+  - **Example**: "The essay provides an analysis that contradicts the argument and does not support the claim."
+
+</item>
+
+<item>
+### Addressing Counterarguments
+- **5**: The essay effectively addresses and refutes counterarguments, providing strong rebuttals and logical reasoning.
+  - **Example**: "The essay acknowledges counterarguments but provides strong rebuttals and logical reasoning to counter the claim."
+- **4**: The essay addresses counterarguments but lacks some depth in rebuttals or logical reasoning. The rebuttals are somewhat strong but could be more detailed.
+  - **Example**: "The essay acknowledges counterarguments but does not provide strong rebuttals or logical reasoning."
+- **3**: The essay partially addresses counterarguments but lacks substantial rebuttals or logical reasoning. The rebuttals are weak and lack depth.
+  - **Example**: "The essay mentions counterarguments but does not provide substantial rebuttals or logical reasoning."
+- **2**: The essay barely addresses counterarguments and lacks substantial rebuttals or logical reasoning. The rebuttals are very weak and lack depth.
+  - **Example**: "The essay mentions counterarguments but does not provide any substantial rebuttals or logical reasoning."
+- **1**: The essay does not address counterarguments at all. The essay does not mention or address any counterarguments.
+  - **Example**: "The essay does not mention or address any counterarguments."
+- **0**: The essay is completely off-topic and does not address the claim. The essay is completely irrelevant and does not address the claim.
+  - **Example**: "The essay is completely off-topic and does not address the claim."
+
+</item>
+
+<item>
+### Logical Flow and Structure
+- **5**: The essay has a clear and logical flow, with well-organized paragraphs and a coherent structure.
+  - **Example**: "The essay has a clear introduction, body paragraphs that each focus on a specific aspect of the argument, and a conclusion that summarizes the main points."
+- **4**: The essay is generally well-structured, but it has some minor issues with transitions or flow. The structure is clear but could be more cohesive.
+  - **Example**: "The essay has a clear structure but lacks some transitions between paragraphs."
+- **3**: The essay is somewhat well-structured, but it has some issues with transitions and flow. The structure is basic but lacks clarity.
+  - **Example**: "The essay has a basic structure but lacks clear transitions and a logical flow."
+- **2**: The essay has a poor structure with unclear transitions and a lack of logical flow. The structure is poor and lacks clarity.
+  - **Example**: "The essay lacks a clear structure and has unclear transitions between ideas."
+- **1**: The essay has a very poor structure with no clear transitions or logical flow. The structure is very poor and lacks clarity.
+  - **Example**: "The essay is poorly structured and lacks any clear transitions or logical flow."
+- **0**: The essay does not attempt to structure the argument logically.
+  - **Example**: "The essay does not have any structure and is a collection of unrelated ideas."
+
+</item>
+
+<item>
+### Conclusion
+- **5**: The essay has a strong and effective conclusion that summarizes the main points and reinforces the argument.
+  - **Example**: "The essay has a strong conclusion that summarizes the main points and reinforces the argument against the claim."
+- **4**: The essay has a mostly effective conclusion but lacks some depth in summarizing the main points.
+  - **Example**: "The essay has a mostly effective conclusion but does not fully summarize the main points."
+- **3**: The essay has a somewhat effective conclusion but lacks substantial depth in summarizing the main points.
+  - **Example**: "The essay has a somewhat effective conclusion but does not fully summarize the main points."
+- **2**: The essay has a minimally effective conclusion and lacks substantial depth in summarizing the main points.
+  - **Example**: "The essay has a minimally effective conclusion and does not fully summarize the main points."
+- **1**: The essay has a weak conclusion that does not summarize the main points.
+  - **Example**: "The essay has a weak conclusion that does not summarize the main points."
+- **0**: The essay lacks a conclusion.
+  - **Example**: "The essay does not have a conclusion."
+
+</item>

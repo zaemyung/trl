@@ -1,0 +1,82 @@
+integration. The evidence is somewhat strong but could be more detailed.
+  - **Example**: "The essay uses some studies but does not fully integrate them into the argument."
+
+- **3**: The essay provides some evidence and reasoning but lacks substantial support. The evidence is weak and lacks depth.
+  - **Example**: "The essay mentions some studies but does not provide substantial support or reasoning."
+
+- **2**: The essay barely provides evidence and reasoning. The evidence is very weak and lacks depth.
+  - **Example**: "The essay mentions some studies but does not provide any substantial support or reasoning."
+
+- **1**: The essay does not provide any evidence or reasoning to support the argument.
+  - **Example**: "The essay does not provide any evidence or reasoning to support the argument."
+
+- **0**: The essay is completely off-topic and does not address the claim.
+  - **Example**: "The essay is completely off-topic and does not address the claim."
+
+</item>
+
+<item>
+### Clarity and Coherence
+- **5**: The essay is clear and coherent, with no use of non-English phrases or confusing language.
+  - **Example**: "The essay is clear and coherent, with no use of non-English phrases."
+
+- **4**: The essay is generally clear and coherent, but it has some minor issues with clarity or coherence. The essay may contain a few non-English phrases.
+  - **Example**: "The essay is generally clear and coherent but contains a few non-English phrases."
+
+- **3**: The essay is somewhat clear and coherent, but it has some issues with clarity or coherence. The essay contains some non-English phrases.
+  - **Example**: "The essay is somewhat clear and coherent but contains some non-English phrases."
+
+- **2**: The essay has poor clarity and coherence with unclear transitions and a lack of logical flow. The essay contains multiple non-English phrases.
+  - **Example**: "The essay has poor clarity and coherence with unclear transitions and a lack of logical flow, and contains multiple non-English phrases."
+
+- **1**: The essay has very poor clarity and coherence with no transitions and no logical flow. The essay contains multiple non-English phrases.
+  - **Example**: "The essay has very poor clarity and coherence with no transitions and no logical flow, and contains multiple non-English phrases."
+
+- **0**: The essay is completely incoherent and does not follow any logical structure.
+  - **Example**: "The essay is a rambling discussion with no clear structure and contains multiple non-English phrases."
+
+</item>
+
+<item>
+### Language and Style
+- **5**: The essay uses clear, precise language and an appropriate academic style. The writing is engaging and free of grammatical errors.
+  - **Example**: "The essay uses clear, precise language and an appropriate academic style, with no grammatical errors."
+
+- **4**: The essay uses clear language and an appropriate academic style but has some minor grammatical errors or stylistic issues.
+  - **Example**: "The essay uses clear language and an appropriate academic style but has some minor grammatical errors."
+
+- **3**: The essay uses somewhat clear language and an appropriate academic style but has some grammatical errors or stylistic issues.
+  - **Example**: "The essay uses somewhat clear language and an appropriate academic style but has some grammatical errors."
+
+- **2**: The essay has significant grammatical errors or stylistic issues that affect clarity.
+  - **Example**: "The essay has significant grammatical errors that affect clarity."
+
+- **1**: The essay has numerous grammatical errors or stylistic issues that severely affect clarity.
+  - **Example**: "The essay has numerous grammatical errors that severely affect clarity."
+
+- **0**: The essay is completely incoherent and does not follow any logical structure.
+  - **Example**: "The essay is completely incoherent and does not follow any logical structure."
+
+</item>
+
+<item>
+### Word Count
+- **5**: The essay meets the minimum word count requirement of 350 words.
+  - **Example**: "The essay is 350 words long, meeting the minimum requirement."
+
+- **4**: The essay is between 300 and 349 words.
+  - **Example**: "The essay is 320 words long, slightly below the minimum requirement."
+
+- **3**: The essay is between 250 and 299 words.
+  - **Example**: "The essay is 275 words long, significantly below the minimum requirement."
+
+- **2**: The essay is between 200 and 249 words.
+  - **Example**: "The essay is 220 words long, well below the minimum requirement."
+
+- **1**: The essay is less than 200 words.
+  - **Example**: "The essay is 180 words long, far below the minimum requirement."
+
+- **0**: The essay is completely absent or does not meet the minimum word count requirement.
+  - **Example**: "The essay is completely absent or does not meet the minimum word count requirement."
+
+</item>

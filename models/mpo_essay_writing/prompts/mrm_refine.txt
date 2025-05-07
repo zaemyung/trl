@@ -1,0 +1,20 @@
+Based on the meta-level analysis, refine the junior instructor's scoring criteria by designing an explicit rubric-based framework with separate section items for awarding points and deducting points.
+This rubric must assign specific point values for meeting given criteria, with clear deductions for any shortcomings.
+Fill in any gaps in the existing criteria to cover all relevant aspects of the task. Provide a concrete example illustrating how the rubric would apply to a typical student response.
+
+Use the following structure:
+
+<rubric>
+<item>
+### Score Category Name
+- X1: (Description of the criterion for achieving this score X1, followed by an example.)
+- X2: (Description of the criterion for achieving this score X2, followed by an example.)
+...
+</item>
+...
+</rubric>
+
+Your generation should be no more than {{max_words}} words. End with "<EOE>".
+Important: You must follow the <rubric> and <item> formatting as shown above.
+
+Junior Instructor's Scoring Criteria (refined):
