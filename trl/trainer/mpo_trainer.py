@@ -367,7 +367,7 @@ class MPOTrainer(Trainer):
     def null_ref_context(self):
         """Context manager for handling null reference model (that is, peft adapter manipulation)."""
         with (
-            self.accelerator.unwrap_model(self.model.policy).disable_adapter()
+            self.accelerator.unwrap_model(self.model).policy.disable_adapter()
             if self.is_peft_model and not self.ref_adapter_name
             else nullcontext()
         ):
@@ -490,73 +490,72 @@ class MPOTrainer(Trainer):
                         generation_config,
                     )
 
-                for i in range(0, queries.shape[0], args.local_rollout_forward_batch_size):
-                    query = queries[i : i + args.local_rollout_forward_batch_size]
-                    query_response = query_responses[i : i + args.local_rollout_forward_batch_size]
-                    response = query_response[:, context_length:]
-                    logits = logitss[i : i + args.local_rollout_forward_batch_size]
-                    logprob = selective_log_softmax(logits, response)
-                    del logits
-                    torch.cuda.empty_cache()
+                    for i in range(0, queries.shape[0], args.local_rollout_forward_batch_size):
+                        query = queries[i : i + args.local_rollout_forward_batch_size]
+                        query_response = query_responses[i : i + args.local_rollout_forward_batch_size]
+                        response = query_response[:, context_length:]
+                        logits = logitss[i : i + args.local_rollout_forward_batch_size]
+                        logprob = selective_log_softmax(logits, response)
+                        del logits
+                        torch.cuda.empty_cache()
 
-                    if ref_policy is None:
-                        with self.null_ref_context():
-                            ref_output = forward(model.policy, query_response, processing_class.pad_token_id)
-                    else:
-                        ref_output = forward(ref_policy, query_response, processing_class.pad_token_id)
-                    ref_logits = ref_output.logits[:, context_length - 1 : -1]
-                    ref_logits /= args.temperature + 1e-7
-                    ref_logprob = selective_log_softmax(ref_logits, response)
-                    del ref_output, ref_logits
-                    torch.cuda.empty_cache()
+                        unwrapped_model.policy.disable_adapter_layers()
+                        ref_output = forward(unwrapped_model.policy, query_response, processing_class.pad_token_id)
+                        unwrapped_model.policy.enable_adapter_layers()
 
-                    # Response Processing 1. truncate response after the first occurrence of `stop_token_id`
-                    postprocessed_response = response
-                    if self.stop_token_id is not None:  # handle the edge case when stop_token_id exists but is 0
-                        postprocessed_response = truncate_response(
-                            self.stop_token_id, processing_class.pad_token_id, response
+                        ref_logits = ref_output.logits[:, context_length - 1 : -1]
+                        ref_logits /= args.temperature + 1e-7
+                        ref_logprob = selective_log_softmax(ref_logits, response)
+                        del ref_output, ref_logits
+                        torch.cuda.empty_cache()
+
+                        # Response Processing 1. truncate response after the first occurrence of `stop_token_id`
+                        postprocessed_response = response
+                        if self.stop_token_id is not None:  # handle the edge case when stop_token_id exists but is 0
+                            postprocessed_response = truncate_response(
+                                self.stop_token_id, processing_class.pad_token_id, response
+                            )
+
+                        # Response Processing 2. run reward model on the truncated responses
+                        postprocessed_query_response = torch.cat((query, postprocessed_response), 1)
+                        sequence_length = first_true_indices(postprocessed_response == processing_class.pad_token_id) - 1
+                        unwrapped_value_model = accelerator.unwrap_model(model).value_model
+                        full_value, _, _ = get_reward(
+                            unwrapped_value_model, query_response, processing_class.pad_token_id, context_length
+                        )
+                        value = full_value[:, context_length - 1 : -1].squeeze(-1)
+
+                        detokenized_query = processing_class.batch_decode(query, skip_special_tokens=True)
+                        detokenized_response = processing_class.batch_decode(
+                            postprocessed_response, skip_special_tokens=True
                         )
 
-                    # Response Processing 2. run reward model on the truncated responses
-                    postprocessed_query_response = torch.cat((query, postprocessed_response), 1)
-                    sequence_length = first_true_indices(postprocessed_response == processing_class.pad_token_id) - 1
-                    unwrapped_value_model = accelerator.unwrap_model(model).value_model
-                    full_value, _, _ = get_reward(
-                        unwrapped_value_model, query_response, processing_class.pad_token_id, context_length
-                    )
-                    value = full_value[:, context_length - 1 : -1].squeeze(-1)
+                        if isinstance(self.reward_model, mpo.RewardModel):
+                            score, evaluation = get_reward_for_mpo(
+                                self.reward_model,
+                                detokenized_query,
+                                detokenized_response,
+                                return_evaluations=True,
+                            )
+                            assert len(score) == len(evaluation) == len(detokenized_query) == len(detokenized_response)
+                            gatherings["junior_scores"].extend(score)
+                            gatherings["junior_evaluations"].extend(evaluation)
+                            gatherings["queries"].extend(detokenized_query)
+                            gatherings["student_responses"].extend(detokenized_response)
 
-                    detokenized_query = processing_class.batch_decode(query, skip_special_tokens=True)
-                    detokenized_response = processing_class.batch_decode(
-                        postprocessed_response, skip_special_tokens=True
-                    )
+                            score = torch.tensor(score, device=device, dtype=torch.float)
+                        else:
+                            _, score, _ = get_reward(
+                                reward_model, postprocessed_query_response, processing_class.pad_token_id, context_length
+                            )
 
-                    if isinstance(self.reward_model, mpo.RewardModel):
-                        score, evaluation = get_reward_for_mpo(
-                            self.reward_model,
-                            detokenized_query,
-                            detokenized_response,
-                            return_evaluations=True,
-                        )
-                        assert len(score) == len(evaluation) == len(detokenized_query) == len(detokenized_response)
-                        gatherings["junior_scores"].extend(score)
-                        gatherings["junior_evaluations"].extend(evaluation)
-                        gatherings["queries"].extend(detokenized_query)
-                        gatherings["student_responses"].extend(detokenized_response)
-
-                        score = torch.tensor(score, device=device, dtype=torch.float)
-                    else:
-                        _, score, _ = get_reward(
-                            reward_model, postprocessed_query_response, processing_class.pad_token_id, context_length
-                        )
-
-                    responses.append(response)
-                    postprocessed_responses.append(postprocessed_response)
-                    logprobs.append(logprob)
-                    ref_logprobs.append(ref_logprob)
-                    sequence_lengths.append(sequence_length)
-                    scores.append(score)
-                    values.append(value)
+                        responses.append(response)
+                        postprocessed_responses.append(postprocessed_response)
+                        logprobs.append(logprob)
+                        ref_logprobs.append(ref_logprob)
+                        sequence_lengths.append(sequence_length)
+                        scores.append(score)
+                        values.append(value)
                 responses = torch.cat(responses, 0)
                 postprocessed_responses = torch.cat(postprocessed_responses, 0)
                 logprobs = torch.cat(logprobs, 0)
@@ -723,6 +722,9 @@ class MPOTrainer(Trainer):
                 self.state.epoch = self.state.episode / self.train_dataset_len  # used by self.log
                 self.state.global_step += 1
                 self.log(metrics)
+                self.accelerator.print(metrics)
+                if self.accelerator.is_main_process:
+                    wandb.log(metrics)
 
             self.lr_scheduler.step()
             self.control = self.callback_handler.on_step_end(args, self.state, self.control)

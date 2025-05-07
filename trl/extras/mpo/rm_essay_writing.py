@@ -303,8 +303,8 @@ class MetaRewardModelEssayWriting(MetaRewardModel):
 
 
 if __name__ == "__main__":
-    reward_model_address = "http://[2607:ea00:101:3c26:4f28:e134:1c5:e7bc]:30000"
-    experiment_directory = "/space1/zaemyung/Development/trl/models/minimal/mytest"
+    reward_model_address = "http://129.213.31.51:30000"
+    experiment_directory = "/home/ubuntu/temp/mytest"
     prompts_directory = os.path.join(experiment_directory, "prompts")
     batch_index = 10
 
@@ -334,16 +334,16 @@ if __name__ == "__main__":
         "The FBI's decision to bypass Apple's security measures has been widely criticized as being unnecessary and possibly illegal. However, I believe that it is not a big deal for the FBI to do so. This is because the technology used by Apple's devices is not as secure as we think. In fact, the NSA has been able to successfully exploit vulnerabilities in Apple's devices in the past. Additionally, the FBI is not the only agency that has access to the technology used by Apple's devices. The National Security Agency (NSA) has also been able to access the same technology. Therefore, it is not a big deal for the FBI to bypass Apple's security measures.\n\nHowever, some argue that the FBI's actions are not legal and could lead to a breach of privacy. In response, I believe that the FBI is within its rights to bypass Apple's security measures. The Constitution of the United States guarantees the right to privacy, but it does not guarantee the right to absolute privacy. In fact, the government has a duty to protect the public from harm, which could be achieved through the use of technology that is necessary to do so.\n\nFurthermore, I believe that it is not a big deal for the FBI to bypass Apple's security measures because it is not a significant breach of privacy. The technology used by Apple's devices is not as secure as we think, and the NSA has been able to successfully exploit vulnerabilities in Apple's devices in the past. Therefore, it is not a big deal for the FBI to bypass Apple's security measures, as it is not a significant breach of privacy.\n\nIn conclusion, I believe that the FBI's decision to bypass Apple's security measures is not a big deal. The technology used by Apple's devices is not as secure as we think, and the NSA has been able to successfully exploit vulnerabilities in Apple's devices in the past. Additionally, the FBI is not the only agency that has access to the technology used by Apple's devices. Therefore, it is not",
     ]
 
-    # scores, evaluations = reward_model.score(queries, responses)
-    # for s, e in zip(scores, evaluations):
-    #     print(f"Score: {s}")
-    #     print(f"Evaluations: {e}")
-    #     print("-" * 50)
+    scores, evaluations = reward_model.score(queries, responses)
+    for s, e in zip(scores, evaluations):
+        print(f"Score: {s}")
+        print(f"Evaluations: {e}")
+        print("-" * 50)
 
-    meta_reward_model = MetaRewardModelEssayWriting(
-        reward_model_address=reward_model_address,
-        experiment_directory=experiment_directory,
-    )
-    evaluation_results = meta_reward_model.meta_evaluate_and_update(batch_index=batch_index, return_evaluations=True)
-    with open(os.path.join(prompts_directory, f"meta_evaluation_results_{batch_index}.json"), "w") as f:
-        json.dump(evaluation_results, f, indent=4)
+    # meta_reward_model = MetaRewardModelEssayWriting(
+    #     reward_model_address=reward_model_address,
+    #     experiment_directory=experiment_directory,
+    # )
+    # evaluation_results = meta_reward_model.meta_evaluate_and_update(batch_index=batch_index, return_evaluations=True)
+    # with open(os.path.join(prompts_directory, f"meta_evaluation_results_{batch_index}.json"), "w") as f:
+    #     json.dump(evaluation_results, f, indent=4)

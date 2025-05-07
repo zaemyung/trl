@@ -1,4 +1,9 @@
 accelerate
 datasets
+deepspeed
+natsort
+peft
 rich
+tf-keras
 transformers>=4.46.0
+wandb

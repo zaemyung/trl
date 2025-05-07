@@ -16,23 +16,24 @@ from trl.trainer.utils import SIMPLE_CHAT_TEMPLATE
 
 
 """
-# CUDA_VISIBLE_DEVICES=0 accelerate launch --config_file examples/accelerate_configs/deepspeed_zero2.yaml \
-CUDA_VISIBLE_DEVICES=0 accelerate launch --config_file examples/accelerate_configs/single_gpu.yaml \
+# CUDA_VISIBLE_DEVICES=0 accelerate launch --config_file examples/accelerate_configs/single_gpu.yaml \
+# CUDA_VISIBLE_DEVICES=0,1,2,3 accelerate launch --config_file examples/accelerate_configs/multi_gpu_6gpus.yaml \
+CUDA_VISIBLE_DEVICES=0,1,2,3,4,5 accelerate launch --config_file examples/accelerate_configs/deepspeed_zero2_6gpus.yaml \
     examples/scripts/mpo.py \
     --dataset_name "essay_writing" \
     --task_name "essay_writing" \
     --wandb_entity "iterater" \
     --wandb_project "mpo-new" \
-    --exp_name "essay_writing-mpo_test" \
-    --output_dir models/minimal/mpo_test \
+    --exp_name "essay_writing-mpo-32b_32b" \
+    --output_dir models/mpo_essay_writing \
     --learning_rate 3e-6 \
     --num_ppo_epochs 4 \
-    --num_mpo_interval 2 \
+    --num_mpo_interval 10 \
     --num_mpo_samples 20 \
-    --num_mini_batches 1 \
+    --num_mini_batches 2 \
     --learning_rate 3e-6 \
-    --per_device_train_batch_size 1 \
-    --gradient_accumulation_steps 16 \
+    --per_device_train_batch_size 4 \
+    --gradient_accumulation_steps 2 \
     --local_rollout_forward_batch_size 1 \
     --total_episodes 26013 \
     --model_name_or_path Qwen/Qwen2-1.5B-Instruct \
@@ -41,8 +42,8 @@ CUDA_VISIBLE_DEVICES=0 accelerate launch --config_file examples/accelerate_confi
     --missing_eos_penalty 1.0 \
     --kl_coef 0.02 \
     --stop_token eos \
-    --reward_model_address "http://[2607:ea00:101:3c26:a4b9:e58d:d62d:17d9]:30000" \
-    --meta_reward_model_address "http://[2607:ea00:101:3c26:a4b9:e58d:d62d:17d9]:30000"
+    --reward_model_address "http://129.213.31.51:30000" \
+    --meta_reward_model_address "http://129.213.31.51:30000"
 """
 
 
