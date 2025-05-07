@@ -255,7 +255,8 @@ class MPOTrainer(Trainer):
         args.run_name = f"{args.exp_name}__{args.seed}__{time_int}"
         self.local_seed = args.seed + accelerator.process_index * 100003  # Prime
         if args.num_sample_generations > 0:
-            self.sample_generations_freq = max(1, args.num_total_batches // args.num_sample_generations)
+            # self.sample_generations_freq = max(1, args.num_total_batches // args.num_sample_generations)
+            self.sample_generations_freq = args.num_mpo_interval * 4
         self.local_dataloader_batch_size = args.local_batch_size
 
         #########
@@ -843,7 +844,7 @@ class MPOTrainer(Trainer):
                         gather_object(processing_class.batch_decode(query, skip_special_tokens=True))
                     )
                     table["model response"].extend(
-                        gather_object(processing_class.batch_decode(postprocessed_response))
+                        gather_object(processing_class.batch_decode(postprocessed_response, skip_special_tokens=True))
                     )
 
                     postprocessed_query_response = torch.cat((query, postprocessed_response), 1)
