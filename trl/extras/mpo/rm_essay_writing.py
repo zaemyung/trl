@@ -4,6 +4,7 @@ import random
 from glob import glob
 from time import time
 from typing import Any
+from collections import Counter
 
 import numpy as np
 import regex as re
@@ -140,7 +141,7 @@ class RewardModelEssayWriting(RewardModel):
 def mrm_prescreen(s, prescreen_prompt: str):
     s += system("You are a helpful English teacher.")
     s += user(prescreen_prompt)
-    s += assistant(gen("score", choices=["0", "1"]))
+    s += assistant(gen("verdict", choices=["good", "ok", "bad"]))
 
 
 @function
@@ -209,28 +210,32 @@ class MetaRewardModelEssayWriting(MetaRewardModel):
             [{"prescreen_prompt": _input} for _input in prescreen_inputs], backend=self.backend
         )
         assert len(states) == len(inputs) == len(prescreen_inputs)
-        prescreened_indices = []
-        prescreened_scores = []
+        prescreened_verdicts = []
+        prescreened_ok_indices = []
+        prescreened_bad_indices = []
         for i, s in enumerate(states):
             try:
-                s["score"] = int(s["score"])
+                s["verdict"] = s["verdict"].strip()
             except Exception as e:
-                print(f"Could not retrieve s['score'] for state index: {e}")
-                s.set_var("score", None)
-                continue
-            if s["score"] == 0:
-                prescreened_indices.append(i)
-            prescreened_scores.append(s["score"])
+                print(f"Could not retrieve s['verdict'] for state index: {e}")
+                s.set_var("verdict", "None")
+            prescreened_verdicts.append(s["verdict"])
+            if s["verdict"] == "ok":
+                prescreened_ok_indices.append(i)
+            elif s["verdict"] == "bad":
+                prescreened_bad_indices.append(i)
+        prescreened_verdicts_counter = Counter(prescreened_verdicts)
 
         end_time = time()
         prescreen_time = (end_time - start_time) / 60
         print(f"Prescreening took {prescreen_time:.2f} minutes for {len(prescreen_inputs)} samples.")
-        print(
-            f"Prescreened scores -> 1s: {np.sum(prescreened_scores)}, 0s: {len(prescreened_scores) - np.sum(prescreened_scores)}"
-        )
+        print(f"Prescreened verdicts dist.: {prescreened_verdicts_counter}")
 
-        random.shuffle(prescreened_indices)
-        selected_indices = prescreened_indices[:num_samples]
+        random.shuffle(prescreened_bad_indices)
+        random.shuffle(prescreened_ok_indices)
+        selected_indices = prescreened_bad_indices[:num_samples]
+        if len(selected_indices) < num_samples:
+            selected_indices += prescreened_ok_indices[: num_samples - len(selected_indices)]
 
         ### Analysis and Refinement
         print("Analysis and Refinment step...")
@@ -296,6 +301,7 @@ class MetaRewardModelEssayWriting(MetaRewardModel):
                         "junior_prompt": current_junior_prompt,
                         "meta_analysis": analyses[i],
                         "meta_refinement": refinements[i],
+                        "prescreened_verdict": prescreened_verdicts[selected_index],
                         **inputs[selected_index],
                     }
                 )

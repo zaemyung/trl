@@ -16,9 +16,7 @@ from trl.trainer.utils import SIMPLE_CHAT_TEMPLATE
 
 
 """
-# CUDA_VISIBLE_DEVICES=0 accelerate launch --config_file examples/accelerate_configs/single_gpu.yaml \
-# CUDA_VISIBLE_DEVICES=0,1,2,3 accelerate launch --config_file examples/accelerate_configs/multi_gpu_6gpus.yaml \
-CUDA_VISIBLE_DEVICES=0,1,2,3,4,5 accelerate launch --config_file examples/accelerate_configs/deepspeed_zero2_6gpus.yaml \
+CUDA_VISIBLE_DEVICES=0,1,2,3 accelerate launch --config_file examples/accelerate_configs/deepspeed_zero2_4gpus.yaml \
     examples/scripts/mpo.py \
     --dataset_name "essay_writing" \
     --task_name "essay_writing" \
@@ -29,7 +27,7 @@ CUDA_VISIBLE_DEVICES=0,1,2,3,4,5 accelerate launch --config_file examples/accele
     --learning_rate 3e-6 \
     --num_ppo_epochs 4 \
     --num_mpo_interval 10 \
-    --num_mpo_samples 20 \
+    --num_mpo_samples 30 \
     --num_mini_batches 1 \
     --learning_rate 3e-6 \
     --per_device_train_batch_size 4 \
