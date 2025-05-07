@@ -787,6 +787,7 @@ class MPOTrainer(Trainer):
                         batch_index=update,
                         return_evaluations=True,
                         num_samples=args.num_mpo_samples,
+                        do_prescreening=False,
                     )
                     evaluation_logs_path = os.path.join(
                         self.evaluations_directory, f"meta_evaluation_results_{update}.json"

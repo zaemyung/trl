@@ -176,8 +176,44 @@ class MetaRewardModelEssayWriting(MetaRewardModel):
             **kwargs,
         )
 
+    def join_under_word_limit(self, refinements: list[str], N: int, sep: str = "\n===\n") -> str:
+        """
+        Join strings from `refinements` with `sep`, stopping before the total
+        whitespace‑separated word count exceeds `N`.
+
+        Parameters
+        ----------
+        refinements : list[str]
+            The strings to join.
+        N : int
+            Maximum total number of words allowed in the joined result.
+        sep : str, optional
+            Separator to place between pieces. Defaults to "\n===\n".
+
+        Returns
+        -------
+        str
+            The joined string whose word count is ≤ N.
+        """
+        joined_parts = []
+        word_count = 0
+
+        for chunk in refinements:
+            words_in_chunk = len(chunk.split())
+            if word_count + words_in_chunk > N:
+                break
+            joined_parts.append(chunk)
+            word_count += words_in_chunk
+
+        return sep.join(joined_parts)
+
     def meta_evaluate_and_update(
-        self, batch_index: int, return_evaluations: bool = True, num_samples: int = 20, **kwargs
+        self,
+        batch_index: int,
+        return_evaluations: bool = True,
+        num_samples: int = 20,
+        do_prescreening: bool = False,
+        **kwargs,
     ) -> dict[str, Any]:
         """
         Meta-evaluate the model, update the evaluation rubric, and return the analyses.
@@ -207,39 +243,42 @@ class MetaRewardModelEssayWriting(MetaRewardModel):
                 inputs.append(_input)
                 prescreen_inputs.append(self.prescreen_template.render(_input))
 
-        ### Prescreening
-        print(f"Prescreening {len(prescreen_inputs)} samples...")
-        start_time = time()
-        states = mrm_prescreen.run_batch(
-            [{"prescreen_prompt": _input} for _input in prescreen_inputs], backend=self.backend
-        )
-        assert len(states) == len(inputs) == len(prescreen_inputs)
-        prescreened_verdicts = []
-        prescreened_ok_indices = []
-        prescreened_bad_indices = []
-        for i, s in enumerate(states):
-            try:
-                s["verdict"] = s["verdict"].strip()
-            except Exception as e:
-                print(f"Could not retrieve s['verdict'] for state index: {e}")
-                s.set_var("verdict", "None")
-            prescreened_verdicts.append(s["verdict"])
-            if s["verdict"] == "ok":
-                prescreened_ok_indices.append(i)
-            elif s["verdict"] == "bad":
-                prescreened_bad_indices.append(i)
-        prescreened_verdicts_counter = Counter(prescreened_verdicts)
+        if do_prescreening:
+            ### Prescreening
+            print(f"Prescreening {len(prescreen_inputs)} samples...")
+            start_time = time()
+            states = mrm_prescreen.run_batch(
+                [{"prescreen_prompt": _input} for _input in prescreen_inputs], backend=self.backend
+            )
+            assert len(states) == len(inputs) == len(prescreen_inputs)
+            prescreened_verdicts = []
+            prescreened_ok_indices = []
+            prescreened_bad_indices = []
+            for i, s in enumerate(states):
+                try:
+                    s["verdict"] = s["verdict"].strip()
+                except Exception as e:
+                    print(f"Could not retrieve s['verdict'] for state index: {e}")
+                    s.set_var("verdict", "None")
+                prescreened_verdicts.append(s["verdict"])
+                if s["verdict"] == "ok":
+                    prescreened_ok_indices.append(i)
+                elif s["verdict"] == "bad":
+                    prescreened_bad_indices.append(i)
+            prescreened_verdicts_counter = Counter(prescreened_verdicts)
 
-        end_time = time()
-        prescreen_time = (end_time - start_time) / 60
-        print(f"Prescreening took {prescreen_time:.2f} minutes for {len(prescreen_inputs)} samples.")
-        print(f"Prescreened verdicts dist.: {prescreened_verdicts_counter}")
+            end_time = time()
+            prescreen_time = (end_time - start_time) / 60
+            print(f"Prescreening took {prescreen_time:.2f} minutes for {len(prescreen_inputs)} samples.")
+            print(f"Prescreened verdicts dist.: {prescreened_verdicts_counter}")
 
-        random.shuffle(prescreened_bad_indices)
-        random.shuffle(prescreened_ok_indices)
-        selected_indices = prescreened_bad_indices[:num_samples]
-        if len(selected_indices) < num_samples:
-            selected_indices += prescreened_ok_indices[: num_samples - len(selected_indices)]
+            random.shuffle(prescreened_bad_indices)
+            random.shuffle(prescreened_ok_indices)
+            selected_indices = prescreened_bad_indices[:num_samples]
+            if len(selected_indices) < num_samples:
+                selected_indices += prescreened_ok_indices[: num_samples - len(selected_indices)]
+        else:
+            selected_indices = random.sample(range(len(inputs)), num_samples)
 
         ### Analysis and Refinement
         print("Analysis and Refinment step...")
@@ -273,12 +312,8 @@ class MetaRewardModelEssayWriting(MetaRewardModel):
         ### Merge the refinements
         print("Merge step...")
         start_time = time()
-        merge_prompt = self.merge_template.render(
-            {"multiple_sets": "\n===\n".join(refinements) + "\n```", "max_words": 1200}
-        )
-        if len(merge_prompt.split(" ")) > float(32768) / 1.7:
-            print("Merge prompt is too long! Truncating...")
-            merge_prompt = " ".join(merge_prompt.split(" ")[: int(32768 / 1.7)])
+        joined_prompts = self.join_under_word_limit(refinements, int(32768 / 1.7), sep="\n===\n")
+        merge_prompt = self.merge_template.render({"multiple_sets": joined_prompts + "\n```", "max_words": 1200})
         state = mrm_merge.run(merge_prompt=merge_prompt, backend=self.backend)
         merged_criteria = state["merged"]
 
@@ -303,15 +338,15 @@ class MetaRewardModelEssayWriting(MetaRewardModel):
             assert len(analyses) == len(refinements) == len(selected_indices)
             logs = []
             for i, selected_index in enumerate(selected_indices):
-                logs.append(
-                    {
-                        "junior_prompt": current_junior_prompt,
-                        "meta_analysis": analyses[i],
-                        "meta_refinement": refinements[i],
-                        "prescreened_verdict": prescreened_verdicts[selected_index],
-                        **inputs[selected_index],
-                    }
-                )
+                log = {
+                    "junior_prompt": current_junior_prompt,
+                    "meta_analysis": analyses[i],
+                    "meta_refinement": refinements[i],
+                    **inputs[selected_index],
+                }
+                if do_prescreening:
+                    log["prescreened_verdict"] = prescreened_verdicts[selected_index]
+                logs.append(log)
             return logs
 
 
