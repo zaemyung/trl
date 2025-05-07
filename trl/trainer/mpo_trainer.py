@@ -499,9 +499,9 @@ class MPOTrainer(Trainer):
                         del logits
                         torch.cuda.empty_cache()
 
-                        unwrapped_model.policy.disable_adapter_layers()
-                        ref_output = forward(unwrapped_model.policy, query_response, processing_class.pad_token_id)
-                        unwrapped_model.policy.enable_adapter_layers()
+                        assert ref_policy is None
+                        with self.null_ref_context():
+                            ref_output = forward(unwrapped_model.policy, query_response, processing_class.pad_token_id)
 
                         ref_logits = ref_output.logits[:, context_length - 1 : -1]
                         ref_logits /= args.temperature + 1e-7

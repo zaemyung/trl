@@ -30,11 +30,11 @@ CUDA_VISIBLE_DEVICES=0,1,2,3,4,5 accelerate launch --config_file examples/accele
     --num_ppo_epochs 4 \
     --num_mpo_interval 10 \
     --num_mpo_samples 20 \
-    --num_mini_batches 2 \
+    --num_mini_batches 1 \
     --learning_rate 3e-6 \
     --per_device_train_batch_size 4 \
     --gradient_accumulation_steps 2 \
-    --local_rollout_forward_batch_size 1 \
+    --local_rollout_forward_batch_size 24 \
     --total_episodes 26013 \
     --model_name_or_path Qwen/Qwen2-1.5B-Instruct \
     --sft_model_path Qwen/Qwen2-1.5B-Instruct \
