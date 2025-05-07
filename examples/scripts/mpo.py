@@ -25,7 +25,7 @@ CUDA_VISIBLE_DEVICES=0,1,2,3 accelerate launch --config_file examples/accelerate
     --output_dir models/mpo_essay_writing \
     --learning_rate 3e-6 \
     --num_ppo_epochs 4 \
-    --num_mpo_interval 2 \
+    --num_mpo_interval 10 \
     --num_mpo_samples 20 \
     --num_mini_batches 1 \
     --learning_rate 3e-6 \
