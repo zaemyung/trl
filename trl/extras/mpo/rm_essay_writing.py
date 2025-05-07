@@ -1,12 +1,11 @@
 import json
 import os
 import random
+from collections import Counter
 from glob import glob
 from time import time
 from typing import Any
-from collections import Counter
 
-import numpy as np
 import regex as re
 from sglang import assistant, function, gen, system, user
 
@@ -148,9 +147,9 @@ def mrm_prescreen(s, prescreen_prompt: str):
 def mrm_analyze_and_refine(s, analyze_prompt: str, refine_prompt: str):
     s += system("You are a helpful English teacher.")
     s += user(analyze_prompt)
-    s += assistant(gen("analysis", temperature=0.02, max_tokens=3000, stop=["<EOE>"]))
+    s += assistant(gen("analysis", temperature=0.02, max_tokens=2000, stop=["<EOE>"]))
     s += user(refine_prompt)
-    s += assistant(gen("refinement", temperature=0.02, max_tokens=3000, stop=["<EOE>", "</rubric>"]))
+    s += assistant(gen("refinement", temperature=0.02, max_tokens=2000, stop=["<EOE>", "</rubric>"]))
 
 
 @function
@@ -158,6 +157,11 @@ def mrm_merge(s, merge_prompt: str, temperature: float = 0.02):
     s += system("You are a helpful English teacher.")
     s += user(merge_prompt)
     s += assistant(gen("merged", temperature=temperature, max_tokens=3000, stop=["<EOE>", "</rubric>"]))
+    if "<item>" not in s["merged"]:
+        s += user(
+            "Important: Please rewrite the merged prompt so that each evaluation criterion is clearly enclosed between <item> and </item> tags, exactly as instructed."
+        )
+        s += assistant(gen("merged", temperature=temperature, max_tokens=3000, stop=["<EOE>", "</rubric>"]))
 
 
 class MetaRewardModelEssayWriting(MetaRewardModel):
@@ -270,8 +274,11 @@ class MetaRewardModelEssayWriting(MetaRewardModel):
         print("Merge step...")
         start_time = time()
         merge_prompt = self.merge_template.render(
-            {"multiple_sets": "\n===\n".join(refinements) + "\n```", "max_words": 1000}
+            {"multiple_sets": "\n===\n".join(refinements) + "\n```", "max_words": 1200}
         )
+        if len(merge_prompt.split(" ")) > float(32768) / 1.7:
+            print("Merge prompt is too long! Truncating...")
+            merge_prompt = " ".join(merge_prompt.split(" ")[: int(32768 / 1.7)])
         state = mrm_merge.run(merge_prompt=merge_prompt, backend=self.backend)
         merged_criteria = state["merged"]
 

@@ -518,7 +518,9 @@ class MPOTrainer(Trainer):
 
                         # Response Processing 2. run reward model on the truncated responses
                         postprocessed_query_response = torch.cat((query, postprocessed_response), 1)
-                        sequence_length = first_true_indices(postprocessed_response == processing_class.pad_token_id) - 1
+                        sequence_length = (
+                            first_true_indices(postprocessed_response == processing_class.pad_token_id) - 1
+                        )
                         unwrapped_value_model = accelerator.unwrap_model(model).value_model
                         full_value, _, _ = get_reward(
                             unwrapped_value_model, query_response, processing_class.pad_token_id, context_length
@@ -546,7 +548,10 @@ class MPOTrainer(Trainer):
                             score = torch.tensor(score, device=device, dtype=torch.float)
                         else:
                             _, score, _ = get_reward(
-                                reward_model, postprocessed_query_response, processing_class.pad_token_id, context_length
+                                reward_model,
+                                postprocessed_query_response,
+                                processing_class.pad_token_id,
+                                context_length,
                             )
 
                         responses.append(response)
@@ -736,7 +741,7 @@ class MPOTrainer(Trainer):
             gc.collect()
 
             if args.num_sample_generations > 0 and (update - 1) % self.sample_generations_freq == 0:
-                # self.generate_completions(sampling=True)
+                self.generate_completions(sampling=True)
                 torch.cuda.empty_cache()
             del (
                 query_responses,
@@ -842,10 +847,30 @@ class MPOTrainer(Trainer):
                     )
 
                     postprocessed_query_response = torch.cat((query, postprocessed_response), 1)
-                    _, score, _ = get_reward(
-                        self.reward_model, postprocessed_query_response, processing_class.pad_token_id, context_length
+
+                    detokenized_query = processing_class.batch_decode(query, skip_special_tokens=True)
+                    detokenized_response = processing_class.batch_decode(
+                        postprocessed_response, skip_special_tokens=True
                     )
-                    table["score"].extend(self.accelerator.gather_for_metrics(score).float().cpu().numpy())
+                    if isinstance(self.reward_model, mpo.RewardModel):
+                        score, evaluation = get_reward_for_mpo(
+                            self.reward_model,
+                            detokenized_query,
+                            detokenized_response,
+                            return_evaluations=True,
+                        )
+
+                        score = torch.tensor(score, device=self.accelerator.device, dtype=torch.float)
+
+                        table["score"].extend(self.accelerator.gather(score).float().cpu().numpy())
+                    else:
+                        _, score, _ = get_reward(
+                            self.reward_model,
+                            postprocessed_query_response,
+                            processing_class.pad_token_id,
+                            context_length,
+                        )
+                        table["score"].extend(self.accelerator.gather_for_metrics(score).float().cpu().numpy())
 
                 if sampling:
                     break

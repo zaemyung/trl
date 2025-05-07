@@ -5,7 +5,6 @@ import shutil
 import numpy as np
 import torch
 from accelerate import PartialState
-from datasets import load_dataset
 from peft import LoraConfig
 from transformers import AutoModelForCausalLM, AutoTokenizer, HfArgumentParser
 
