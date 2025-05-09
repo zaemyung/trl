@@ -35,8 +35,10 @@ class MPOConfig(OnPolicyConfig):
             Name of this experiment.
         wandb_entity (`str`, *optional*, defaults to `None`):
             Name of wandb entity.
-        wandb_entity (`str`, *optional*, defaults to `None`):
+        wandb_project (`str`, *optional*, defaults to `None`):
             Name of wandb project.
+        init_rm_prompt (`str`, *optional*, defaults to `None`):
+            Path to initial version of RM evaluation prompt.
         reward_model_address (`str`, *optional*, defaults to `None`):
             Address to the reward model.
         meta_reward_model_address (`str`, *optional*, defaults to `None`):
@@ -95,6 +97,10 @@ class MPOConfig(OnPolicyConfig):
     wandb_project: str = field(
         default=None,
         metadata={"help": "Name of wandb project."},
+    )
+    init_rm_prompt: str = field(
+        default=None,
+        metadata={"help": "Path to initial version of RM evaluation prompt."},
     )
     reward_model_address: str = field(
         default=None,

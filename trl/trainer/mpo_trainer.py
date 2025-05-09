@@ -160,6 +160,8 @@ class MPOTrainer(Trainer):
         os.makedirs(self.checkpoints_directory, exist_ok=True)
         source_prompts_directory = os.path.join(os.path.dirname(mpo.__file__), "prompts", self.args.task_name)
         shutil.copytree(source_prompts_directory, self.prompts_directory, dirs_exist_ok=True)
+        shutil.copy2(args.init_rm_prompt, os.path.join(self.prompts_directory, "evaluation_rubric_iter_0.txt"))
+        print(f"Using {args.init_rm_prompt} as `evaluation_rubric_iter_0.txt`")
 
         # Define the collator if not provided
         if data_collator is None:
@@ -804,6 +806,11 @@ class MPOTrainer(Trainer):
                 )
 
                 self.accelerator.wait_for_everyone()
+
+        # Save last checkpoint
+        torch.cuda.empty_cache()
+        if self.accelerator.is_main_process:
+            self.save_model(f"{self.checkpoints_directory}/{update - 1}")
 
         # HF trainer specifics
         self.control = self.callback_handler.on_train_end(args, self.state, self.control)

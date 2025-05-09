@@ -1,6 +1,5 @@
 import os
 import random
-import shutil
 
 import numpy as np
 import torch
@@ -15,33 +14,7 @@ from trl.trainer.utils import SIMPLE_CHAT_TEMPLATE
 
 
 """
-CUDA_VISIBLE_DEVICES=0,1,2,3 accelerate launch --config_file examples/accelerate_configs/deepspeed_zero2_5gpus.yaml \
-    examples/scripts/mpo.py \
-    --dataset_name "essay_writing" \
-    --task_name "essay_writing" \
-    --wandb_entity "iterater" \
-    --wandb_project "mpo-new" \
-    --exp_name "ew-ppo-expert-32b" \
-    --output_dir models/essay_writing/ppo/expert-32b \
-    --learning_rate 3e-6 \
-    --num_ppo_epochs 4 \
-    --num_mpo_interval 99999999 \
-    --num_mpo_samples 20 \
-    --save_n_updates 20 \
-    --num_mini_batches 1 \
-    --learning_rate 3e-6 \
-    --per_device_train_batch_size 8 \
-    --gradient_accumulation_steps 2 \
-    --local_rollout_forward_batch_size 48 \
-    --total_episodes 26013 \
-    --model_name_or_path Qwen/Qwen2-1.5B-Instruct \
-    --sft_model_path Qwen/Qwen2-1.5B-Instruct \
-    --response_length 400 \
-    --missing_eos_penalty 1.0 \
-    --kl_coef 0.02 \
-    --stop_token eos \
-    --reward_model_address "http://64.181.209.10:30000" \
-    --meta_reward_model_address "http://64.181.209.10:30000"
+See launch script in /home/elicer/Development/trl/scripts/mpo_experiments/essay_writing_launch.sh
 """
 
 
@@ -62,13 +35,11 @@ if __name__ == "__main__":
     seed_everything(42)
     parser = HfArgumentParser((ScriptArguments, MPOConfig, ModelConfig))
     script_args, training_args, model_args = parser.parse_args_into_dataclasses()
-    # if os.path.exists(training_args.output_dir):
-    #     raise ValueError(
-    #         f"Output directory ({training_args.output_dir}) already exists. Please choose a different output directory."
-    #     )
-    # else:
-    #     shutil.rmtree(training_args.output_dir, ignore_errors=True)
-    shutil.rmtree(training_args.output_dir, ignore_errors=True)
+    if os.path.exists(training_args.output_dir):
+        raise ValueError(
+            f"Output directory ({training_args.output_dir}) already exists. Please choose a different output directory."
+        )
+    # shutil.rmtree(training_args.output_dir, ignore_errors=True)
 
     task_name = training_args.task_name
     assert task_name in [
@@ -172,7 +143,5 @@ if __name__ == "__main__":
         peft_config=peft_config,
     )
     trainer.train()
-
-    trainer.save_model(training_args.output_dir)
 
     # trainer.generate_completions()

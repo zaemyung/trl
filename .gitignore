@@ -98,6 +98,7 @@ celerybeat-schedule
 .venv
 venv/
 ENV/
+trl-venv/
 
 # Spyder project settings
 .spyderproject
@@ -154,3 +155,4 @@ models/**/tokenizer.json
 models/**/tokenizer_config.json
 models/**/training_args.bin
 models/**/vocab.json
+models/**/checkpoints
