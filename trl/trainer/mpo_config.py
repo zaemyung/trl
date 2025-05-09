@@ -51,6 +51,8 @@ class MPOConfig(OnPolicyConfig):
             Number of batch steps to run before updating the RM prompt using MPO steps.
         num_mpo_samples (`int`, *optional*, defaults to `20`):
             Number of episodes to consider when conducting MPO steps.
+        save_n_updates (`int`, *optional*, defaults to `20`):
+            Number of updates to save a checkpoint.
         whiten_rewards (`bool`, *optional*, defaults to `False`):
             Whether to whiten the rewards.
         kl_coef (`float`, *optional*, defaults to `0.05`):
@@ -121,6 +123,10 @@ class MPOConfig(OnPolicyConfig):
     num_mpo_samples: int = field(
         default=20,
         metadata={"help": "Number of episodes to consider when conducting MPO steps."},
+    )
+    save_n_updates: int = field(
+        default=20,
+        metadata={"help": "Number of updates to save a checkpoint."},
     )
     whiten_rewards: bool = field(
         default=False,

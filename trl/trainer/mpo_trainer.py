@@ -19,7 +19,7 @@ import os
 import shutil
 import textwrap
 import time
-from collections import defaultdict
+from collections import OrderedDict, defaultdict
 from contextlib import contextmanager, nullcontext
 from typing import Optional, Union
 
@@ -152,10 +152,12 @@ class MPOTrainer(Trainer):
         self.rollouts_directory = os.path.join(self.experiment_directory, "rollouts")
         self.prompts_directory = os.path.join(self.experiment_directory, "prompts")
         self.evaluations_directory = os.path.join(self.experiment_directory, "evaluations")
+        self.checkpoints_directory = os.path.join(self.experiment_directory, "checkpoints")
         os.makedirs(self.experiment_directory, exist_ok=True)
         os.makedirs(self.rollouts_directory, exist_ok=True)
         os.makedirs(self.prompts_directory, exist_ok=True)
         os.makedirs(self.evaluations_directory, exist_ok=True)
+        os.makedirs(self.checkpoints_directory, exist_ok=True)
         source_prompts_directory = os.path.join(os.path.dirname(mpo.__file__), "prompts", self.args.task_name)
         shutil.copytree(source_prompts_directory, self.prompts_directory, dirs_exist_ok=True)
 
@@ -254,9 +256,6 @@ class MPOTrainer(Trainer):
         time_int = broadcast(time_tensor, 0).item()  # avoid different timestamps across processes
         args.run_name = f"{args.exp_name}__{args.seed}__{time_int}"
         self.local_seed = args.seed + accelerator.process_index * 100003  # Prime
-        if args.num_sample_generations > 0:
-            # self.sample_generations_freq = max(1, args.num_total_batches // args.num_sample_generations)
-            self.sample_generations_freq = args.num_mpo_interval * 4
         self.local_dataloader_batch_size = args.local_batch_size
 
         #########
@@ -392,6 +391,7 @@ class MPOTrainer(Trainer):
 
         if self.is_deepspeed_enabled:
             self.deepspeed = backup_deepspeed
+        print(f"Model saved to {output_dir}")
 
     def train(self):
         args = self.args
@@ -741,9 +741,11 @@ class MPOTrainer(Trainer):
             torch.cuda.empty_cache()
             gc.collect()
 
-            if args.num_sample_generations > 0 and (update - 1) % self.sample_generations_freq == 0:
+            if args.num_sample_generations > 0 and (update - 1) % args.save_n_updates == 0:
                 self.generate_completions(sampling=True)
                 torch.cuda.empty_cache()
+                if self.accelerator.is_main_process:
+                    self.save_model(f"{self.checkpoints_directory}/{update - 1}")
             del (
                 query_responses,
                 responses,
