@@ -32,8 +32,6 @@ trl_dir="/home/elicer/Development/trl"
 #     --reward_model_address "http://0.0.0.0:30000" \
 #     --meta_reward_model_address "http://0.0.0.0:30000"
 
-sleep 10
-
 # policy 1.5b, PPO 72b, autoprompt
 CUDA_VISIBLE_DEVICES=0,1 accelerate launch --config_file $trl_dir/examples/accelerate_configs/deepspeed_zero2_2gpus.yaml \
     $trl_dir/examples/scripts/mpo.py \

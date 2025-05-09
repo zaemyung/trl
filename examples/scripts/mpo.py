@@ -4,6 +4,8 @@ import random
 import numpy as np
 import torch
 from accelerate import PartialState
+from dotenv import load_dotenv
+from notification import Pushover
 from peft import LoraConfig
 from transformers import AutoModelForCausalLM, AutoTokenizer, HfArgumentParser
 
@@ -32,6 +34,9 @@ def seed_everything(seed: int = 42):
 
 
 if __name__ == "__main__":
+    load_dotenv()
+    pushover = Pushover(user=os.environ["PUSHOVER_USER"], token=os.environ["PUSHOVER_TOKEN"])
+
     seed_everything(42)
     parser = HfArgumentParser((ScriptArguments, MPOConfig, ModelConfig))
     script_args, training_args, model_args = parser.parse_args_into_dataclasses()
@@ -130,18 +135,43 @@ if __name__ == "__main__":
     ################
     # Training
     ################
-    trainer = MPOTrainer(
-        args=training_args,
-        processing_class=tokenizer,
-        model=policy,
-        ref_model=ref_policy,
-        reward_model_address=reward_model_address,
-        meta_reward_model_address=meta_reward_model_address,
-        value_model=value_model,
-        train_dataset=train_dataset,
-        eval_dataset=eval_dataset,
-        peft_config=peft_config,
+    print(f"{training_args.task_name}-{training_args.exp_name}\nTraining started.")
+    pushover.notify(
+        title=f"{training_args.task_name}-{training_args.exp_name}",
+        message="Training started.",
+        priority=1,
+        sound="magic",
     )
-    trainer.train()
+    try:
+        trainer = MPOTrainer(
+            args=training_args,
+            processing_class=tokenizer,
+            model=policy,
+            ref_model=ref_policy,
+            reward_model_address=reward_model_address,
+            meta_reward_model_address=meta_reward_model_address,
+            value_model=value_model,
+            train_dataset=train_dataset,
+            eval_dataset=eval_dataset,
+            peft_config=peft_config,
+        )
+        trainer.train()
+    except Exception as e:
+        print(f"{training_args.task_name}-{training_args.exp_name}\nTraining failed: {e}")
+        pushover.notify(
+            title=f"{training_args.task_name}-{training_args.exp_name}",
+            message=f"Training failed: {e}",
+            priority=1,
+            sound="magic",
+        )
+        raise
+
+    print(f"{training_args.task_name}-{training_args.exp_name}\nTraining completed.")
+    pushover.notify(
+        title=f"{training_args.task_name}-{training_args.exp_name}",
+        message="Training completed.",
+        priority=1,
+        sound="magic",
+    )
 
     # trainer.generate_completions()
