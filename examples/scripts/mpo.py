@@ -136,12 +136,13 @@ if __name__ == "__main__":
     # Training
     ################
     print(f"{training_args.task_name}-{training_args.exp_name}\nTraining started.")
-    pushover.notify(
-        title=f"{training_args.task_name}-{training_args.exp_name}",
-        message="Training started.",
-        priority=1,
-        sound="magic",
-    )
+    with PartialState().local_main_process_first():
+        pushover.notify(
+            title=f"{training_args.task_name}-{training_args.exp_name}",
+            message="Training started.",
+            priority=1,
+            sound="magic",
+        )
     try:
         trainer = MPOTrainer(
             args=training_args,
@@ -158,20 +159,22 @@ if __name__ == "__main__":
         trainer.train()
     except Exception as e:
         print(f"{training_args.task_name}-{training_args.exp_name}\nTraining failed: {e}")
-        pushover.notify(
-            title=f"{training_args.task_name}-{training_args.exp_name}",
-            message=f"Training failed: {e}",
-            priority=1,
-            sound="magic",
-        )
+        with PartialState().local_main_process_first():
+            pushover.notify(
+                title=f"{training_args.task_name}-{training_args.exp_name}",
+                message=f"Training failed: {e}",
+                priority=1,
+                sound="magic",
+            )
         raise
 
     print(f"{training_args.task_name}-{training_args.exp_name}\nTraining completed.")
-    pushover.notify(
-        title=f"{training_args.task_name}-{training_args.exp_name}",
-        message="Training completed.",
-        priority=1,
-        sound="magic",
-    )
+    with PartialState().local_main_process_first():
+        pushover.notify(
+            title=f"{training_args.task_name}-{training_args.exp_name}",
+            message="Training completed.",
+            priority=1,
+            sound="magic",
+        )
 
     # trainer.generate_completions()
