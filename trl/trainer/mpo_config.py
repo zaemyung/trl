@@ -29,7 +29,7 @@ class MPOConfig(OnPolicyConfig):
     command line.
 
     Parameters:
-        task_name (`str`, *optional*, defaults to `essay_writing`):
+        task_name (`str`, *optional*, defaults to `None`):
             Name of the task. Should be one of ['essay_writing', 'summarization', 'math_reasoning', 'ethical_reasoning']
         exp_name (`str`, *optional*, defaults to `os.path.basename(__file__)[:-3]`):
             Name of this experiment.

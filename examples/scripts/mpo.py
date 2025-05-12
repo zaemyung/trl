@@ -136,7 +136,7 @@ if __name__ == "__main__":
     # Training
     ################
     print(f"{training_args.task_name}-{training_args.exp_name}\nTraining started.")
-    with PartialState().local_main_process_first():
+    if PartialState().is_main_process:
         pushover.notify(
             title=f"{training_args.task_name}-{training_args.exp_name}",
             message="Training started.",
@@ -159,7 +159,7 @@ if __name__ == "__main__":
         trainer.train()
     except Exception as e:
         print(f"{training_args.task_name}-{training_args.exp_name}\nTraining failed: {e}")
-        with PartialState().local_main_process_first():
+        if PartialState().is_main_process:
             pushover.notify(
                 title=f"{training_args.task_name}-{training_args.exp_name}",
                 message=f"Training failed: {e}",
@@ -169,7 +169,7 @@ if __name__ == "__main__":
         raise
 
     print(f"{training_args.task_name}-{training_args.exp_name}\nTraining completed.")
-    with PartialState().local_main_process_first():
+    if PartialState().is_main_process:
         pushover.notify(
             title=f"{training_args.task_name}-{training_args.exp_name}",
             message="Training completed.",
