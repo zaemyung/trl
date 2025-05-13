@@ -145,7 +145,7 @@ class MetaRewardModelEssayWriting(MetaRewardModel, RewardModelEssayWriting):
             "First, based on the analysis, determine how many unique scoring criteria are required and provide the total as a number:"
         )
         s += assistant(gen("num_items", temperature=0.02, regex=r"\d+"))
-        s += user("Now, you will write each criterion one by one.")
+        s += user("Now, write each criterion one by one, ensuring that no previously written criterion is repeated.")
         refined_items = []
         for i in range(1, int(s["num_items"]) + 1):
             s += user(
@@ -164,9 +164,11 @@ class MetaRewardModelEssayWriting(MetaRewardModel, RewardModelEssayWriting):
     def mrm_merge(s, merge_prompt: str, temperature: float = 0.02):
         s += system("You are a helpful English teacher.")
         s += user(merge_prompt)
-        s += user("First, determine the number of unique scoring criteria needed for these sets. Write the number:")
+        s += user(
+            "First, determine how many non-overlapping and distinct scoring criteria are required to comprehensively represent the given sets. Output the total number of unique criteria needed:"
+        )
         s += assistant(gen("num_merged_items", temperature=temperature, regex=r"\d+"))
-        s += user("Now, you will write each criterion one by one.")
+        s += user("Now, write each criterion one by one, ensuring that no previously written criterion is repeated.")
         merged_items = []
         for i in range(1, int(s["num_merged_items"]) + 1):
             s += user(
