@@ -28,7 +28,7 @@ def get_task_dataset(task_name: str, tokenizer, split: str):
     from trl.extras import mpo
 
     if task_name == "essay_writing":
-        dataset = prepare_essay_writing_dataset(tokenizer, split)
+        dataset = prepare_essay_writing_dataset(tokenizer, split, size=13000)
     elif task_name == "summarization":
         dataset = prepare_summarization_dataset(tokenizer, split)
     elif task_name == "math_reasoning":
@@ -326,7 +326,8 @@ class MetaRewardModel(RewardModel):
         ### Merge the refinements
         print("Merge step...")
         start_time = time()
-        joined_prompts = self.join_under_word_limit(refinements, int(32768 / 1.7), sep="\n===\n")
+        ### Need to reserve some space in the input context for merged prompt
+        joined_prompts = self.join_under_word_limit(refinements, int(25000 / 1.5), sep="\n===\n")
         merge_prompt = self.merge_template.render({"multiple_sets": joined_prompts + "\n```"})
         state = self.mrm_merge.run(merge_prompt=merge_prompt, backend=self.backend)
         merged_criteria = state["merged"]

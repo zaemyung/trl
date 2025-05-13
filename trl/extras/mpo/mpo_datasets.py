@@ -3,7 +3,7 @@ import multiprocessing as mp
 from datasets import load_dataset
 
 
-def prepare_essay_writing_dataset(tokenizer, split: str = "test"):
+def prepare_essay_writing_dataset(tokenizer, split: str = "test", size: int = None):
     _dataset = load_dataset("zaemyung/writing_prompts_collection")[split]
 
     def _prepare_dataset(dataset, tokenizer):
@@ -30,7 +30,11 @@ def prepare_essay_writing_dataset(tokenizer, split: str = "test"):
         )
 
     dataset = _prepare_dataset(_dataset, tokenizer)
+    dataset = dataset.shuffle(seed=42)
     assert dataset[0]["input_ids"][-1] != tokenizer.eos_token_id, "The last token should not be an EOS token"
+    if size is not None:
+        return dataset.select(range(size))
+
     return dataset
 
 
@@ -82,13 +86,13 @@ def prepare_mathematical_reasoning_dataset(tokenizer, data_file_paths: list[str]
         }
 
     dataset = load_dataset("json", data_files=data_file_paths, split="train")
-
-    return dataset.map(
+    dataset = dataset.map(
         tokenize,
         remove_columns=dataset.column_names,
         num_proc=mp.cpu_count(),
         load_from_cache_file=True,
     )
+    dataset = dataset.shuffle(seed=42)
 
 
 def prepare_summarization_dataset(tokenizer, split: str = "test"):
@@ -127,6 +131,7 @@ def prepare_summarization_dataset(tokenizer, split: str = "test"):
         load_from_cache_file=True,
         num_proc=mp.cpu_count(),
     )
+    tokenized_dataset = tokenized_dataset.shuffle(seed=42)
     return tokenized_dataset
 
 
@@ -178,4 +183,5 @@ def prepare_ethical_reasoning_dataset(tokenizer, data_file_path: str):
         num_proc=mp.cpu_count(),
         load_from_cache_file=True,
     )
+    tokenized_dataset = tokenized_dataset.shuffle(seed=42)
     return tokenized_dataset

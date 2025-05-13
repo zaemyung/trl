@@ -149,13 +149,13 @@ class MetaRewardModelEssayWriting(MetaRewardModel, RewardModelEssayWriting):
         refined_items = []
         for i in range(1, int(s["num_items"]) + 1):
             s += user(
-                f'Write the scoring criterion #{i} in fewer than 400 words, following the specified structure, and conclude with "<EOE>":'
+                f'Write the scoring criterion #{i} in fewer than 300 words, following the specified structure, and conclude with "<EOE>":'
             )
-            s += assistant(gen(f"_item_{i}", temperature=0.02, max_tokens=700, stop=["<EOE>", "</EOE>", "EOE"]))
+            s += assistant(gen(f"_item_{i}", temperature=0.02, max_tokens=500, stop=["<EOE>", "</EOE>", "EOE"]))
             criterion = s[f"_item_{i}"]
             refined_items.append(f"<item>\n{criterion}\n</item>")
-            current_context_token_length = len(s.text().split(" ")) * 1.7
-            if current_context_token_length >= 31000:
+            current_context_token_length = len(s.text().split(" ")) * 1.5
+            if current_context_token_length >= 31300:
                 break
         refinement = "<rubric>\n" + "\n\n".join(refined_items) + "\n</rubric>"
         s.set_var("refinement", refinement)
@@ -170,15 +170,15 @@ class MetaRewardModelEssayWriting(MetaRewardModel, RewardModelEssayWriting):
         merged_items = []
         for i in range(1, int(s["num_merged_items"]) + 1):
             s += user(
-                f'For merged criterion #{i}, write it in fewer than 400 words, following the specified structure, and conclude with "<EOE>":'
+                f'For merged criterion #{i}, write it in fewer than 300 words, following the specified structure, and conclude with "<EOE>":'
             )
             s += assistant(
-                gen(f"_merged_item_{i}", temperature=temperature, max_tokens=700, stop=["<EOE>", "</EOE>", "EOE"])
+                gen(f"_merged_item_{i}", temperature=temperature, max_tokens=500, stop=["<EOE>", "</EOE>", "EOE"])
             )
             criterion = s[f"_merged_item_{i}"]
             merged_items.append(f"<item>\n{criterion}\n</item>")
-            current_context_token_length = len(s.text().split(" ")) * 1.7
-            if current_context_token_length >= 31000:
+            current_context_token_length = len(s.text().split(" ")) * 1.5
+            if current_context_token_length >= 31300:
                 break
         refinement = "<rubric>\n" + "\n\n".join(merged_items) + "\n</rubric>"
         s.set_var("merged", refinement)

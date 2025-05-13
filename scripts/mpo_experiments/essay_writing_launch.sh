@@ -112,12 +112,12 @@ run_experiment() {
         --num_ppo_epochs 4 \
         --num_mpo_interval "$num_mpo_interval" \
         --save_n_updates 20 \
-        --num_mpo_samples 20 \
+        --num_mpo_samples 16 \
         --num_mini_batches 1 \
         --per_device_train_batch_size 4 \
         --gradient_accumulation_steps "$grad_acc_steps" \
         --local_rollout_forward_batch_size 48 \
-        --total_episodes 26013 \
+        --total_episodes 13000 \
         --model_name_or_path "Qwen/Qwen2.5-3B-Instruct" \
         --sft_model_path   "Qwen/Qwen2.5-3B-Instruct" \
         --response_length 400 \
@@ -136,7 +136,7 @@ exp_type="mpo"
 rubric_type="iter0"
 prompt="evaluation_rubric_real_iter_0.txt"
 declare -a rms=("1.5b" "3b" "7b" "14b")
-declare -a mrms=("1.5b" "3b" "7b" "14b")
+declare -a mrms=("7b" "14b" "1.5b" "3b")
 for rm in "${rms[@]}"; do
     for mrm in "${mrms[@]}"; do
         run_experiment "$exp_type" "$rubric_type" "$rm" "$mrm" "$prompt"
