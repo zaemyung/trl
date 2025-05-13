@@ -117,7 +117,7 @@ run_experiment() {
         --per_device_train_batch_size 4 \
         --gradient_accumulation_steps "$grad_acc_steps" \
         --local_rollout_forward_batch_size 48 \
-        --total_episodes 13000 \
+        --total_episodes 10000 \
         --model_name_or_path "Qwen/Qwen2.5-3B-Instruct" \
         --sft_model_path   "Qwen/Qwen2.5-3B-Instruct" \
         --response_length 400 \
