@@ -59,6 +59,10 @@ run_experiment() {
 
     local exp_name="${policy_model}-ew-${exp_type}-${model_name}"
     local output_dir="$trl_dir/models/${policy_model}/${TASK}/${exp_type}/${model_name}"
+    if [ -d $output_dir ]; then
+        printf "$output_dir already exists. Skipped.\n"
+        return
+    fi
 
     # gradient accumulation scaling
     local grad_acc_steps=4
@@ -88,6 +92,8 @@ run_experiment() {
     bash "$trl_dir/scripts/mpo_experiments/launch_rm_mrm.sh" \
         "$pem_key" "$remote_host" \
         "${rm^^}" "${mrm^^}"
+
+    sleep 5
 
     # ------------------------------------------------------------------------
     # Launch policy fine-tuning
@@ -120,7 +126,7 @@ run_experiment() {
         --stop_token "eos" \
         --reward_model_address "$rm_address"  \
         --meta_reward_model_address "$_mrm_address"
-    sleep 3
+    sleep 10
 }
 
 ###############################################################################

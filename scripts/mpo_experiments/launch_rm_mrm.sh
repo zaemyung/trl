@@ -75,7 +75,7 @@ fi
 wait_ready () {
   local port=$1 tag=$2
   echo -n "[INFO] Waiting for $tag on port $port "
-  for _ in {1..60}; do
+  for _ in {1..100}; do
     if (exec 3<>"/dev/tcp/0.0.0.0/$port") 2>/dev/null; then
       exec 3<&- 3>&-
       echo "✓ up"; return 0
