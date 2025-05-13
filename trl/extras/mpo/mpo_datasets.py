@@ -95,7 +95,7 @@ def prepare_mathematical_reasoning_dataset(tokenizer, data_file_paths: list[str]
     dataset = dataset.shuffle(seed=42)
 
 
-def prepare_summarization_dataset(tokenizer, split: str = "test"):
+def prepare_summarization_dataset(tokenizer, split: str = "test", train_size: int = None):
     def tokenize(sample):
         input_ids = tokenizer.apply_chat_template(
             [
@@ -132,10 +132,12 @@ def prepare_summarization_dataset(tokenizer, split: str = "test"):
         num_proc=mp.cpu_count(),
     )
     tokenized_dataset = tokenized_dataset.shuffle(seed=42)
+    if split == "train" and train_size is not None:
+        return tokenized_dataset.select(range(train_size))
     return tokenized_dataset
 
 
-def prepare_ethical_reasoning_dataset(tokenizer, data_file_path: str):
+def prepare_ethical_reasoning_dataset(tokenizer, split: str, data_file_path: str, train_size: int = None):
     def _filter_sample(sample):
         try:
             assert sample["binarized_label"] in ["RIGHT", "WRONG"]
@@ -184,4 +186,6 @@ def prepare_ethical_reasoning_dataset(tokenizer, data_file_path: str):
         load_from_cache_file=True,
     )
     tokenized_dataset = tokenized_dataset.shuffle(seed=42)
+    if split == "train" and train_size is not None:
+        return tokenized_dataset.select(range(train_size))
     return tokenized_dataset

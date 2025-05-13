@@ -30,14 +30,14 @@ def get_task_dataset(task_name: str, tokenizer, split: str):
     if task_name == "essay_writing":
         dataset = prepare_essay_writing_dataset(tokenizer, split, train_size=10000)
     elif task_name == "summarization":
-        dataset = prepare_summarization_dataset(tokenizer, split)
+        dataset = prepare_summarization_dataset(tokenizer, split, train_size=10000)
     elif task_name == "math_reasoning":
         data_file_paths = os.path.join(os.path.dirname(mpo.__file__), "corpora", "MATH", f"{split}/**/*.json")
         dataset = prepare_mathematical_reasoning_dataset(tokenizer, data_file_paths=data_file_paths)
     elif task_name == "ethical_reasoning":
         corpus_filename = "train.scruples-anecdotes.jsonl" if split == "train" else "dev-test.scruples-anecdotes.jsonl"
         data_file_path = os.path.join(os.path.dirname(mpo.__file__), "corpora", "anecdotes", corpus_filename)
-        dataset = prepare_ethical_reasoning_dataset(tokenizer, data_file_path=data_file_path)
+        dataset = prepare_ethical_reasoning_dataset(tokenizer, split, data_file_path=data_file_path, train_size=10000)
     else:
         raise ValueError(
             f"Task name '{task_name}' is not supported. Please choose from ['essay_writing', 'summarization', 'math_reasoning', 'ethical_reasoning']"

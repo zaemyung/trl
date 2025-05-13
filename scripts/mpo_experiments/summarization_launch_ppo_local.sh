@@ -11,9 +11,9 @@ SCRIPT="$trl_dir/examples/scripts/mpo.py"
 
 WANDB_ENTITY="iterater"
 WANDB_PROJECT="mpo-new"
-DATASET="essay_writing"
-TASK="essay_writing"
-PROMPT_DIR="$trl_dir/trl/extras/mpo/prompts/essay_writing"
+DATASET="summarization"
+TASK="summarization"
+PROMPT_DIR="$trl_dir/trl/extras/mpo/prompts/summarization"
 
 ###############################################################################
 #  Main runner
