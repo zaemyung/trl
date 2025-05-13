@@ -13,10 +13,6 @@ DATASET="essay_writing"
 TASK="essay_writing"
 PROMPT_DIR="$trl_dir/trl/extras/mpo/prompts/essay_writing"
 
-# venv that contains sglang + AWQ weights
-SGLANG_VENV="/home/elicer/Development/sglang/sglang-venv"
-SGLANG_PY="$SGLANG_VENV/bin/python"          # absolute interpreter path
-
 ###############################################################################
 #  Main runner
 ###############################################################################
@@ -30,15 +26,8 @@ run_experiment() {
     # ------------------------------------------------------------------------
     #  GPU layout
     # ------------------------------------------------------------------------
-    local CUDA_DEVICES
-    if [[ "$rm" == "$mrm" ]]; then
-        CUDA_DEVICES="0,1,2,3"        # RM and MRM share a single 4-GPU server
-    else
-        CUDA_DEVICES="0,1"            # policy side gets 2 GPUs; MRM gets 2/3 later
-    fi
-    IFS=',' read -ra gpu_arr <<<"$CUDA_DEVICES"
-    local NUM_GPUS=${#gpu_arr[@]}
-    local ACC_CONFIG="$trl_dir/examples/accelerate_configs/deepspeed_zero2_${NUM_GPUS}gpus.yaml"
+    local CUDA_DEVICES="0,1,2,3"
+    local ACC_CONFIG="$trl_dir/examples/accelerate_configs/deepspeed_zero2_4gpus.yaml"
 
     # ------------------------------------------------------------------------
     #  Naming & bookkeeping
@@ -55,8 +44,7 @@ run_experiment() {
     local output_dir="$trl_dir/models/${policy_model}/${TASK}/${exp_type}/${model_name}"
 
     # gradient accumulation scaling
-    local grad_acc_steps=8
-    [[ "$NUM_GPUS" -eq 2 ]] && grad_acc_steps=16
+    local grad_acc_steps=4
 
     # MPO interval
     local num_mpo_interval=99999999
@@ -65,44 +53,14 @@ run_experiment() {
     # ------------------------------------------------------------------------
     #  RM / MRM addresses (and optional background MRM server)
     # ------------------------------------------------------------------------
-    local rm_address="http://ymscfzegfxjbrdnk.tunnel.elice.io"
-    local mrm_address="$rm_address"
-    local sglang_pid=""
-
-    if [[ "$exp_type" == "mpo" && "$rm" != "$mrm" ]]; then
-        mrm_address="http://0.0.0.0:30000"
-        echo "🔹 Starting dedicated MRM server in its own venv …"
-
-        # Launch in a *sub-shell* that activates sglang-venv, then exec's python.
-        (
-            source "$SGLANG_VENV/bin/activate"
-            CUDA_VISIBLE_DEVICES=2,3 \
-            exec python -m sglang.launch_server \
-                 --model-path "Qwen/Qwen2.5-${mrm^^}-Instruct-AWQ" \
-                 --host 0.0.0.0 --port 30000 \
-                 --mem-fraction-static 0.9 --dp 2 \
-                 --schedule-conservativeness 0.35 \
-                 --attention-backend flashinfer \
-                 --enable-torch-compile
-        ) > mrm_sglang_server.log 2>&1 &
-
-        sglang_pid=$!
-        echo "   ↳ MRM PID: $sglang_pid"
-
-        echo -n "   ↳ Waiting for server to be ready "
-        until curl -s "$mrm_address" >/dev/null; do
-            echo -n "."
-            sleep 10
-        done
-        echo " success!"
-    fi
+    local rm_address="https://ymscfzegfxjbrdnk.tunnel.elice.io"
+    local mrm_address="https://phzthbsnckqtdrmq.tunnel.elice.io"
 
     # ------------------------------------------------------------------------
     #  Display run-time configuration
     # ------------------------------------------------------------------------
     printf -- "==============  Experiment %s  ==============\n" "$exp_name"
     printf "CUDA_DEVICES       : %s\n" "$CUDA_DEVICES"
-    printf "NUM_GPUS           : %s\n" "$NUM_GPUS"
     printf "ACC_CONFIG         : %s\n" "$ACC_CONFIG"
     printf "grad_acc_steps     : %s\n" "$grad_acc_steps"
     printf "num_mpo_interval   : %s\n" "$num_mpo_interval"
@@ -111,7 +69,15 @@ run_experiment() {
     printf -- "==============================================\n\n"
 
     # ------------------------------------------------------------------------
-    #  Launch policy fine-tuning
+    #  Spin-up RM & MRM servers and wait for them to be ready
+    # ------------------------------------------------------------------------
+    bash $trl_dir/scripts/mpo_experiments/launch_rm_mrm.bash \
+        ~/.ssh/elice-cloud-ondemand-9cc8a02a-574e-4098-befa-f912334e75c9.pem \
+        elicer@central-02.tcp.tunnel.elice.io \
+        "${rm^^}" "${mrm^^}"
+
+    # ------------------------------------------------------------------------
+    # Launch policy fine-tuning
     # ------------------------------------------------------------------------
     CUDA_VISIBLE_DEVICES="$CUDA_DEVICES" \
     accelerate launch --config_file "$ACC_CONFIG" \
@@ -129,7 +95,7 @@ run_experiment() {
         --save_n_updates 20 \
         --num_mpo_samples 20 \
         --num_mini_batches 1 \
-        --per_device_train_batch_size 2 \
+        --per_device_train_batch_size 4 \
         --gradient_accumulation_steps "$grad_acc_steps" \
         --local_rollout_forward_batch_size 48 \
         --total_episodes 26013 \
@@ -141,35 +107,12 @@ run_experiment() {
         --stop_token "eos" \
         --reward_model_address "$rm_address"  \
         --meta_reward_model_address "$mrm_address"
-
-    # ------------------------------------------------------------------------
-    #  Clean-up background MRM server
-    # ------------------------------------------------------------------------
-    if [[ -n "$sglang_pid" ]]; then
-        echo "🔹 Shutting down MRM server (PID $sglang_pid)…"
-        sleep 5
-        pkill -f sglang
-        echo -n "Waiting for all sglang processes to exit"
-        while pgrep -f sglang >/dev/null; do
-            echo -n "."
-            sleep 3
-        done
-        echo "   ↳ MRM server stopped."
-    fi
     sleep 3
 }
 
 ###############################################################################
 #  Sweep
 ###############################################################################
-pkill -f sglang
-echo -n "Waiting for all sglang processes to exit"
-while pgrep -f sglang >/dev/null; do
-    echo -n "."
-    sleep 3
-done
-echo "   ↳ MRM server stopped."
-
 exp_type="mpo"
 rubric_type="iter0"
 rm="1.5b"
