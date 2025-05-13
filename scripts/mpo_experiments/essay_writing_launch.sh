@@ -67,6 +67,9 @@ run_experiment() {
     local num_mpo_interval=99999999
     [[ "$exp_type" == "mpo" ]] && num_mpo_interval=10
 
+    local _mrm_address=$mrm_address
+    [[ $rm == $mrm ]] && _mrm_address=$rm_address
+
     # ------------------------------------------------------------------------
     #  Display run-time configuration
     # ------------------------------------------------------------------------
@@ -76,7 +79,7 @@ run_experiment() {
     printf "grad_acc_steps     : %s\n" "$grad_acc_steps"
     printf "num_mpo_interval   : %s\n" "$num_mpo_interval"
     printf "rm_address         : %s\n" "$rm_address"
-    printf "mrm_address        : %s\n" "$mrm_address"
+    printf "mrm_address        : %s\n" "$_mrm_address"
     printf -- "==============================================\n\n"
 
     # ------------------------------------------------------------------------
@@ -116,7 +119,7 @@ run_experiment() {
         --kl_coef 0.02 \
         --stop_token "eos" \
         --reward_model_address "$rm_address"  \
-        --meta_reward_model_address "$mrm_address"
+        --meta_reward_model_address "$_mrm_address"
     sleep 3
 }
 
@@ -125,12 +128,11 @@ run_experiment() {
 ###############################################################################
 exp_type="mpo"
 rubric_type="iter0"
-rm="1.5b"
-declare -a mrms=("3b" "1.5b" "7b" "14b")
-declare -a prompts=("evaluation_rubric_real_iter_0.txt")
-
-for mrm in "${mrms[@]}"; do
-  for prompt in "${prompts[@]}"; do
-      run_experiment "$exp_type" "$rubric_type" "$rm" "$mrm" "$prompt"
-  done
+prompt="evaluation_rubric_real_iter_0.txt"
+declare -a rms=("1.5b" "3b" "7b" "14b")
+declare -a mrms=("1.5b" "3b" "7b" "14b")
+for rm in "${rms[@]}"; do
+    for mrm in "${mrms[@]}"; do
+        run_experiment "$exp_type" "$rubric_type" "$rm" "$mrm" "$prompt"
+    done
 done

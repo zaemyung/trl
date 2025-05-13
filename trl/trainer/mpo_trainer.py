@@ -219,6 +219,7 @@ class MPOTrainer(Trainer):
         self.reward_model = mpo.get_reward_model(
             self.args.task_name, self.reward_model_address, self.experiment_directory
         )
+        time.sleep(3)
         self.meta_reward_model = mpo.get_meta_reward_model(
             self.args.task_name, self.meta_reward_model_address, self.experiment_directory
         )

@@ -139,18 +139,19 @@ class MetaRewardModelEssayWriting(MetaRewardModel, RewardModelEssayWriting):
     def mrm_analyze_and_refine(s, analyze_prompt: str, refine_prompt: str):
         s += system("You are a helpful English teacher.")
         s += user(analyze_prompt)
-        s += assistant(gen("analysis", temperature=0.02, max_tokens=2000, stop=["<EOE>"]))
+        s += assistant(gen("analysis", temperature=0.02, max_tokens=2000, stop=["<EOE>", "</EOE>", "EOE"]))
         s += user(refine_prompt)
         s += user(
             "First, based on the analysis, determine how many unique scoring criteria are required and provide the total as a number:"
         )
         s += assistant(gen("num_items", temperature=0.02, regex=r"\d+"))
+        s += user("Now, you will write each criterion one by one.")
         refined_items = []
         for i in range(1, int(s["num_items"]) + 1):
             s += user(
-                f'Write the scoring criteria #{i} in fewer than 400 words, following the specified structure, and conclude with "<EOE>":'
+                f'Write the scoring criterion #{i} in fewer than 400 words, following the specified structure, and conclude with "<EOE>":'
             )
-            s += assistant(gen(f"_item_{i}", temperature=0.02, max_tokens=700, stop=["<EOE>", "</EOE>"]))
+            s += assistant(gen(f"_item_{i}", temperature=0.02, max_tokens=700, stop=["<EOE>", "</EOE>", "EOE"]))
             criterion = s[f"_item_{i}"]
             refined_items.append(f"<item>\n{criterion}\n</item>")
             current_context_token_length = len(s.text().split(" ")) * 1.7
@@ -165,12 +166,15 @@ class MetaRewardModelEssayWriting(MetaRewardModel, RewardModelEssayWriting):
         s += user(merge_prompt)
         s += user("First, determine the number of unique scoring criteria needed for these sets. Write the number:")
         s += assistant(gen("num_merged_items", temperature=temperature, regex=r"\d+"))
+        s += user("Now, you will write each criterion one by one.")
         merged_items = []
         for i in range(1, int(s["num_merged_items"]) + 1):
             s += user(
-                f'For merged criterion #{i}, write the scoring criteria in fewer than 400 words, following the specified structure, and conclude with "<EOE>":'
+                f'For merged criterion #{i}, write it in fewer than 400 words, following the specified structure, and conclude with "<EOE>":'
             )
-            s += assistant(gen(f"_merged_item_{i}", temperature=temperature, max_tokens=700, stop=["<EOE>", "</EOE>"]))
+            s += assistant(
+                gen(f"_merged_item_{i}", temperature=temperature, max_tokens=700, stop=["<EOE>", "</EOE>", "EOE"])
+            )
             criterion = s[f"_merged_item_{i}"]
             merged_items.append(f"<item>\n{criterion}\n</item>")
             current_context_token_length = len(s.text().split(" ")) * 1.7
@@ -178,24 +182,3 @@ class MetaRewardModelEssayWriting(MetaRewardModel, RewardModelEssayWriting):
                 break
         refinement = "<rubric>\n" + "\n\n".join(merged_items) + "\n</rubric>"
         s.set_var("merged", refinement)
-
-
-if __name__ == "__main__":
-    # reward_model = RewardModelEssayWriting(
-    #     reward_model_address="http://ymscfzegfxjbrdnk.tunnel.elice.io",
-    #     experiment_directory="/home/elicer/Development/trl/models/essay_writing/ppo/expert-72b",
-    # )
-
-    # query = "user:\nWrite a short story.\nInstructions:\nWrite a short story about a cat.\nYour Writing:\n"
-    # response = "Once upon a time, in a small village, there lived a cat named Whiskers. Whiskers was not an ordinary cat; he had the ability to talk and understand human emotions."
-    # scores, evals = reward_model.score([query], [response])
-    # print(scores)
-    # print(evals)
-
-    meta_reward_model = MetaRewardModelEssayWriting(
-        reward_model_address="http://ymscfzegfxjbrdnk.tunnel.elice.io",
-        experiment_directory="/home/elicer/Development/trl/models/essay_writing/mpo/32b_72b",
-    )
-
-    evals = meta_reward_model.meta_evaluate_and_update(batch_index=60)
-    print(evals)
