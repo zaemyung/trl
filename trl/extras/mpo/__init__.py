@@ -51,8 +51,7 @@ def get_reward_model(task_name: str, reward_model_address: str, experiment_direc
     """
     from trl.extras.mpo.rm_essay_writing import RewardModelEssayWriting
     from trl.extras.mpo.rm_ethical_reasoning import RewardModelEthicalReasoning
-
-    # from trl.extras.mpo.rm_summarization import RewardModelSummarization
+    from trl.extras.mpo.rm_summarization import RewardModelSummarization
     # from trl.extras.mpo.rm_math_reasoning import RewardModelMathReasoning
 
     if task_name == "essay_writing":
@@ -60,11 +59,11 @@ def get_reward_model(task_name: str, reward_model_address: str, experiment_direc
             reward_model_address=reward_model_address,
             experiment_directory=experiment_directory,
         )
-    # elif task_name == "summarization":
-    #     reward_model = RewardModelSummarization(
-    #         reward_model_address=reward_model_address,
-    #         experiment_directory=experiment_directory,
-    #     )
+    elif task_name == "summarization":
+        reward_model = RewardModelSummarization(
+            reward_model_address=reward_model_address,
+            experiment_directory=experiment_directory,
+        )
     # elif task_name == "math_reasoning":
     #     reward_model = RewardModelMathReasoning(
     #         reward_model_address=reward_model_address,
@@ -88,8 +87,8 @@ def get_meta_reward_model(task_name: str, reward_model_address: str, experiment_
     """
     from trl.extras.mpo.rm_essay_writing import MetaRewardModelEssayWriting
     from trl.extras.mpo.rm_ethical_reasoning import MetaRewardModelEthicalReasoning
+    from trl.extras.mpo.rm_summarization import MetaRewardModelSummarization
 
-    # from trl.extras.mpo.rm_summarization import MetaRewardModelSummarization
     # from trl.extras.mpo.rm_math_reasoning import MetaRewardModelMathReasoning
 
     if task_name == "essay_writing":
@@ -97,11 +96,11 @@ def get_meta_reward_model(task_name: str, reward_model_address: str, experiment_
             reward_model_address=reward_model_address,
             experiment_directory=experiment_directory,
         )
-    # elif task_name == "summarization":
-    #     meta_reward_model = MetaRewardModelSummarization(
-    #         reward_model_address=reward_model_address,
-    #         experiment_directory=experiment_directory,
-    #     )
+    elif task_name == "summarization":
+        meta_reward_model = MetaRewardModelSummarization(
+            reward_model_address=reward_model_address,
+            experiment_directory=experiment_directory,
+        )
     # elif task_name == "math_reasoning":
     #     meta_reward_model = MetaRewardModelMathReasoning(
     #         reward_model_address=reward_model_address,
