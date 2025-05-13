@@ -26,8 +26,6 @@ class RewardModelEssayWriting(RewardModel):
         s += user(
             "Given the writing task and specific writing prompt given below, you will assess the quality of a student's essay or story by sequentially assigning a score to each rubric item. "
             + 'For each item, you need to first write a single-sentence rationale followed by a single integer score. Finish your generation with: "<EOE>".\n'
-            + "Example of your output should be:\n"
-            + "<reason>[Your rationale for assigned score]</reason> <score>[integer score]</score> <EOE>\n"
             + "\n\nTask Instruction:\n“"
             + task_description
             + "”\n\nWriting Prompt:\n“"
@@ -35,18 +33,23 @@ class RewardModelEssayWriting(RewardModel):
             + "”\n\nStudent's Generation:\n“"
             + response
             + "”\n\n"
-            + "Example of your output should be:\n"
-            + "<reason>[Your rationale for assigned score]</reason> <score>[integer score]</score> <EOE>\n"
-            + "\nEnsure that you output only an integer score, enclosed within <score> and </score> tags.\n\n"
         )
         for i, item in enumerate(rubric_items):
-            s += user(f"\nRubric Item #{i + 1}\n{item}\n\nYour rationale and integer score:\n")
-            s += assistant(gen(f"rationale_and_score_{i + 1}", temperature=0.02, max_tokens=400, stop=["<EOE>"]))
+            s += user(
+                f'\nRubric Item #{i + 1}\n{item}\n\nFor this rubric item, write your evaluation feedback as one clear, concise sentence, ending with the token "<EOE>":\n'
+            )
+            s += assistant(gen(f"rationale_{i + 1}", temperature=0.02, max_tokens=300, stop=["<EOE>"]))
+            s += user(
+                "Now, using both your evaluation feedback and the rubric's scoring criteria, assign a single integer score."
+            )
+            s += assistant(gen(f"score_{i + 1}", temperature=0.02, regex=r"\d+"))
 
         evaluations = []
         for i in range(len(rubric_items)):
             try:
-                evaluations.append(s[f"rationale_and_score_{i + 1}"])
+                eval_feedback = s[f"rationale_{i + 1}"]
+                eval_score = s[f"score_{i + 1}"]
+                evaluations.append(f"<reason>{eval_feedback}</reason> <score>{eval_score}</score>")
             except Exception as e:
                 print(f"Error processing rubric item {i + 1}: {e}")
                 evaluations.append("None")
@@ -138,18 +141,43 @@ class MetaRewardModelEssayWriting(MetaRewardModel, RewardModelEssayWriting):
         s += user(analyze_prompt)
         s += assistant(gen("analysis", temperature=0.02, max_tokens=2000, stop=["<EOE>"]))
         s += user(refine_prompt)
-        s += assistant(gen("refinement", temperature=0.02, max_tokens=2000, stop=["<EOE>", "</rubric>"]))
+        s += user(
+            "First, based on the analysis, determine how many unique scoring criteria are required and provide the total as a number:"
+        )
+        s += assistant(gen("num_items", temperature=0.02, regex=r"\d+"))
+        refined_items = []
+        for i in range(1, int(s["num_items"]) + 1):
+            s += user(
+                f'Write the scoring criteria #{i} in fewer than 400 words, following the specified structure, and conclude with "<EOE>":'
+            )
+            s += assistant(gen(f"_item_{i}", temperature=0.02, max_tokens=700, stop=["<EOE>", "</EOE>"]))
+            criterion = s[f"_item_{i}"]
+            refined_items.append(f"<item>\n{criterion}\n</item>")
+            current_context_token_length = len(s.text().split(" ")) * 1.7
+            if current_context_token_length >= 31000:
+                break
+        refinement = "<rubric>\n" + "\n\n".join(refined_items) + "\n</rubric>"
+        s.set_var("refinement", refinement)
 
     @function
     def mrm_merge(s, merge_prompt: str, temperature: float = 0.02):
         s += system("You are a helpful English teacher.")
         s += user(merge_prompt)
-        s += assistant(gen("merged", temperature=temperature, max_tokens=3000, stop=["<EOE>", "</rubric>"]))
-        if "<item>" not in s["merged"]:
+        s += user("First, determine the number of unique scoring criteria needed for these sets. Write the number:")
+        s += assistant(gen("num_merged_items", temperature=temperature, regex=r"\d+"))
+        merged_items = []
+        for i in range(1, int(s["num_merged_items"]) + 1):
             s += user(
-                "Important: Please rewrite the merged prompt so that each evaluation criterion is clearly enclosed between <item> and </item> tags, exactly as instructed."
+                f'For merged criterion #{i}, write the scoring criteria in fewer than 400 words, following the specified structure, and conclude with "<EOE>":'
             )
-            s += assistant(gen("merged", temperature=temperature, max_tokens=3000, stop=["<EOE>", "</rubric>"]))
+            s += assistant(gen(f"_merged_item_{i}", temperature=temperature, max_tokens=700, stop=["<EOE>", "</EOE>"]))
+            criterion = s[f"_merged_item_{i}"]
+            merged_items.append(f"<item>\n{criterion}\n</item>")
+            current_context_token_length = len(s.text().split(" ")) * 1.7
+            if current_context_token_length >= 31000:
+                break
+        refinement = "<rubric>\n" + "\n\n".join(merged_items) + "\n</rubric>"
+        s.set_var("merged", refinement)
 
 
 if __name__ == "__main__":

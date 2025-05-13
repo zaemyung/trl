@@ -304,7 +304,8 @@ class MetaRewardModel(RewardModel):
             analyze_prompt = self.analyze_template.render(sample)
             analyze_prompt_all.append(analyze_prompt)
 
-            refine_prompt = self.refine_template.render({"max_words": 1000})
+            refine_prompt = self.refine_template.render({})
+            print(refine_prompt)
             refine_prompt_all.append(refine_prompt)
 
         analysis_and_refinement_inputs = [
@@ -327,7 +328,7 @@ class MetaRewardModel(RewardModel):
         print("Merge step...")
         start_time = time()
         joined_prompts = self.join_under_word_limit(refinements, int(32768 / 1.7), sep="\n===\n")
-        merge_prompt = self.merge_template.render({"multiple_sets": joined_prompts + "\n```", "max_words": 1200})
+        merge_prompt = self.merge_template.render({"multiple_sets": joined_prompts + "\n```"})
         state = self.mrm_merge.run(merge_prompt=merge_prompt, backend=self.backend)
         merged_criteria = state["merged"]
 

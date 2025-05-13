@@ -138,7 +138,7 @@ CUDA_VISIBLE_DEVICES=0,1,2,3 accelerate launch --config_file $trl_dir/examples/a
     --output_dir $trl_dir/models/ethical_reasoning/mpo/32b_32b \
     --learning_rate 3e-6 \
     --num_ppo_epochs 4 \
-    --num_mpo_interval 99999999 \
+    --num_mpo_interval 20 \
     --num_mpo_samples 20 \
     --save_n_updates 20 \
     --num_mini_batches 1 \

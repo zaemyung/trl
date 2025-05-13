@@ -4,21 +4,11 @@ Here are multiple sets of Junior Instructor's Scoring Criteria, delimited by "==
 ```
 {{multiple_sets}}
 
-Combine the above concisely without repetition. The combined criteria should be no more than {{max_words}} words.
+Your task is to combine the above concisely without repetition.
 
-Use the following structure:
-
-<rubric>
-<item>
-### Score Category Name
-- X1: (Description of the criterion for achieving this score X1, followed by an example.)
-- X2: (Description of the criterion for achieving this score X2, followed by an example.)
-(more criteria if needed)
-</item>
-(more items if needed)
-</rubric>
-
-Your generation should be no more than {{max_words}} words. End with "<EOE>".
-Important: You must follow the <rubric> and <item> formatting as shown above.
-
-Junior Instructor's Scoring Criteria (combined):
+Use the following structure for each evaluation criterion:
+### (name of the evaluation category)
+- (score): (description of the criterion for achieving this score, followed by an example.)
+- (score): (description of the criterion for achieving this score, followed by an example.)
+- (score): (description of the criterion for achieving this score, followed by an example.)
+...

@@ -1,11 +1,14 @@
 import json
 import os
 import random
+from glob import glob
+from pprint import pprint
 
 import matplotlib.pyplot as plt
 import openai
 import regex as re
 from dotenv import load_dotenv
+from natsort import natsorted
 from rich.progress import track
 
 
@@ -20,7 +23,9 @@ model_names_to_annon = {
     # "autoprompt-72b": "ModelF",
     # "expert-32b": "ModelG",
     # "expert-72b": "ModelH",
-    "base-1.5b": "ModelI",
+    # "oracle-32b": "ModelI",
+    # "oracle-72b": "ModelJ",
+    # "base-1.5b": "ModelK",
 }
 annon_to_model_names = {v: k for k, v in model_names_to_annon.items()}
 
@@ -238,7 +243,7 @@ def plot_elo_scores(elo_scores, output_path):
     plt.savefig(output_path)
 
 
-def run_sim(iteration, generation_dir, output_dir, exp_name, separation_regex):
+def run_sim(iteration, num_matches, generation_dir, output_dir, exp_name, separation_regex):
     print(f"Running Elo simulation for iteration {iteration}...")
 
     jsonl_paths = {k: f"{generation_dir}/{k}.test.generations.jsonl" for k in model_names_to_annon.keys()}
@@ -251,14 +256,14 @@ def run_sim(iteration, generation_dir, output_dir, exp_name, separation_regex):
 
     final_elo_scores, elo_results = run_elo_simulation(
         data_dict,
-        num_matches=3000,
+        num_matches=num_matches,
         k_factor=4,
         judge_model=openai_model,
     )
 
     final_elo_scores = {annon_to_model_names[k]: v for k, v in final_elo_scores.items()}
 
-    elo_scores_path = f"{output_dir}/{exp_name}.scores.json"
+    elo_scores_path = f"{output_dir}/{exp_name}-{iteration}.scores.json"
     save_elo_scores_to_json(final_elo_scores, output_path=elo_scores_path)
 
     with open(elo_scores_path) as f:
@@ -266,17 +271,44 @@ def run_sim(iteration, generation_dir, output_dir, exp_name, separation_regex):
 
     plot_elo_scores(final_elo_scores, output_path=f"{elo_scores_path[:-5]}_plot.pdf")
 
-    with open(f"{output_dir}/{exp_name}.details.json", "w") as f:
+    with open(f"{output_dir}/{exp_name}-{iteration}.details.json", "w") as f:
         json.dump(elo_results, f, indent=2)
+
+
+def merge_results(output_dir: str, exp_name: str):
+    details_paths = natsorted(glob(os.path.join(output_dir, f"{exp_name}-*.details.json")))
+    scores_paths = natsorted(glob(os.path.join(output_dir, f"{exp_name}-*.scores.json")))
+    all_details = []
+    for d_p in details_paths:
+        with open(d_p) as f:
+            all_details.extend(json.load(f))
+    print(f"Total number of details: {len(all_details)}")
+    all_scores = []
+    for s_p in scores_paths:
+        with open(s_p) as f:
+            scores = json.load(f)
+        all_scores.append(scores)
+    pprint(all_scores)
+    # compute mean of all scores by their keys
+    mean_scores = {}
+    mean_stds = {}
+    for k in all_scores[0].keys():
+        mean_scores[k] = sum([s[k] for s in all_scores]) / len(all_scores)
+        mean_stds[k] = (sum([(s[k] - mean_scores[k]) ** 2 for s in all_scores]) / len(all_scores)) ** 0.5
+    pprint(f"Mean scores: {mean_scores}")
+    pprint(f"Mean stds: {mean_stds}")
 
 
 if __name__ == "__main__":
     client = openai.OpenAI(api_key=os.environ["OPENAI_KEY"])
-    generation_dir = "results/generations/essay_writing"
-    output_dir = "results/elo_scores/essay_writing"
-    exp_name = "mpo_vs_base"
+    generation_dir = "results/policy-1.5b/generations/essay_writing"
+    output_dir = "results/policy-1.5b/elo_scores/essay_writing"
+    exp_name = "mpo_variations"
+    # exp_name = "72b_32bvs72b_72b"
     separation_regex = r"user(.+?)Instructions:(.+?)Your Writing:"
     os.makedirs(output_dir, exist_ok=True)
 
-    for i in range(1, 6):
-        run_sim(i, generation_dir, output_dir, exp_name, separation_regex)
+    for i in range(3, 6):
+        run_sim(i, 2000, generation_dir, output_dir, exp_name, separation_regex)
+
+    merge_results(output_dir, exp_name)
