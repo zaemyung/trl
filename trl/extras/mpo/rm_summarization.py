@@ -68,7 +68,7 @@ class RewardModelSummarization(RewardModel):
         task_descriptions, bills = self.parse_task_descriptions_and_prompts(queries)
         assert len(task_descriptions) == len(bills) == len(queries)
         inputs = [
-            ({"bill": bill, "response": r, "rubric_items": self.rubric_items} for bill, r in zip(bills, responses))
+            {"bill": bill, "response": r, "rubric_items": self.rubric_items} for bill, r in zip(bills, responses)
         ]
         states = self.rm_score.run_batch(inputs, backend=self.backend)
         assert len(states) == len(inputs)
