@@ -104,8 +104,8 @@ run_experiment() {
 #  Sweep
 ###############################################################################
 exp_type="ppo"
-rubric_type="iter0"
-prompt="evaluation_rubric_real_iter_0.txt"
+rubric_type="iter0"  # "expert" "autoprompt" "oracle"
+prompt="evaluation_rubric_real_iter_0.txt"  # "evaluation_rubric_expert.txt" "evaluation_rubric_autoprompt.txt" "evaluation_rubric_oracle.txt"
 declare -a rms=("1.5b" "3b" "7b" "14b")
 for rm in "${rms[@]}"; do
     run_experiment "$exp_type" "$rubric_type" "$rm" "$prompt"
