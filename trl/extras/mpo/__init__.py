@@ -28,7 +28,7 @@ def get_task_dataset(task_name: str, tokenizer, split: str):
     from trl.extras import mpo
 
     if task_name == "essay_writing":
-        dataset = prepare_essay_writing_dataset(tokenizer, split, size=13000)
+        dataset = prepare_essay_writing_dataset(tokenizer, split, train_size=13000)
     elif task_name == "summarization":
         dataset = prepare_summarization_dataset(tokenizer, split)
     elif task_name == "math_reasoning":

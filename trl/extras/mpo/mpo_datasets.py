@@ -3,7 +3,7 @@ import multiprocessing as mp
 from datasets import load_dataset
 
 
-def prepare_essay_writing_dataset(tokenizer, split: str = "test", size: int = None):
+def prepare_essay_writing_dataset(tokenizer, split: str = "test", train_size: int = None):
     _dataset = load_dataset("zaemyung/writing_prompts_collection")[split]
 
     def _prepare_dataset(dataset, tokenizer):
@@ -32,8 +32,8 @@ def prepare_essay_writing_dataset(tokenizer, split: str = "test", size: int = No
     dataset = _prepare_dataset(_dataset, tokenizer)
     dataset = dataset.shuffle(seed=42)
     assert dataset[0]["input_ids"][-1] != tokenizer.eos_token_id, "The last token should not be an EOS token"
-    if size is not None:
-        return dataset.select(range(size))
+    if split == "train" and train_size is not None:
+        return dataset.select(range(train_size))
 
     return dataset
 
