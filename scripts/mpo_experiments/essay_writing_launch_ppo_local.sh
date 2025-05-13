@@ -97,7 +97,7 @@ run_experiment() {
         --stop_token "eos" \
         --reward_model_address "$rm_address"  \
         --meta_reward_model_address "$_mrm_address"
-    sleep 3
+    sleep 10
 }
 
 ###############################################################################
