@@ -305,7 +305,6 @@ class MetaRewardModel(RewardModel):
             analyze_prompt_all.append(analyze_prompt)
 
             refine_prompt = self.refine_template.render({})
-            print(refine_prompt)
             refine_prompt_all.append(refine_prompt)
 
         analysis_and_refinement_inputs = [
