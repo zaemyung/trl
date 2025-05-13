@@ -38,6 +38,10 @@ run_experiment() {
 
     local exp_name="${policy_model}-ew-${exp_type}-${model_name}"
     local output_dir="$trl_dir/models/${policy_model}/${TASK}/${exp_type}/${model_name}"
+    if [ -d $output_dir ]; then
+        printf "$output_dir already exists. Skipped.\n"
+        return
+    fi
 
     # gradient accumulation scaling
     local grad_acc_steps=16
