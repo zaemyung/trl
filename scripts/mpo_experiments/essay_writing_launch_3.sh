@@ -55,8 +55,8 @@ run_experiment() {
     local output_dir="$trl_dir/models/${policy_model}/${TASK}/${exp_type}/${model_name}"
 
     # gradient accumulation scaling
-    local grad_acc_steps=4
-    [[ "$NUM_GPUS" -eq 2 ]] && grad_acc_steps=8
+    local grad_acc_steps=8
+    [[ "$NUM_GPUS" -eq 2 ]] && grad_acc_steps=16
 
     # MPO interval
     local num_mpo_interval=99999999
@@ -129,7 +129,7 @@ run_experiment() {
         --save_n_updates 20 \
         --num_mpo_samples 20 \
         --num_mini_batches 1 \
-        --per_device_train_batch_size 4 \
+        --per_device_train_batch_size 2 \
         --gradient_accumulation_steps "$grad_acc_steps" \
         --local_rollout_forward_batch_size 48 \
         --total_episodes 26013 \
@@ -162,6 +162,14 @@ run_experiment() {
 ###############################################################################
 #  Sweep
 ###############################################################################
+pkill -f sglang
+echo -n "Waiting for all sglang processes to exit"
+while pgrep -f sglang >/dev/null; do
+    echo -n "."
+    sleep 3
+done
+echo "   ↳ MRM server stopped."
+
 exp_type="mpo"
 rubric_type="iter0"
 rm="1.5b"
