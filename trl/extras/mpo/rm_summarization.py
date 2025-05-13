@@ -17,7 +17,7 @@ class RewardModelSummarization(RewardModel):
         )
 
     def parse_task_descriptions_and_prompts(self, queries: list[str]) -> tuple[list[str], list[str]]:
-        separation_regex = r"You are a helpful assistant.\nuser(.+?)Bill:\n```(.+?)```Your summary should be less"
+        separation_regex = r"You are a helpful assistant\.\nuser(.+?)Bill:\n```(.+?)```"
         return self.parse_task_descriptions_and_prompts_base(queries, separation_regex)
 
     @function
