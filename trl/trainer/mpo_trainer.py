@@ -92,6 +92,8 @@ def get_task_specific_gatherings(task_name: str) -> dict[str, list]:
         return {}
     elif task_name == "ethical_reasoning":
         return {}
+    elif task_name == "summarization":
+        return {}
     else:
         raise ValueError(
             f"Unknown task name {task_name}. Allowed values are: ['essay_writing', 'summarization', 'math_reasoning', 'ethical_reasoning']."
