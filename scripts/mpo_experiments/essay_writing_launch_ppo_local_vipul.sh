@@ -11,9 +11,9 @@ SCRIPT="$trl_dir/examples/scripts/mpo.py"
 
 WANDB_ENTITY="iterater"
 WANDB_PROJECT="mpo-new"
-DATASET="essay_writing"
-TASK="essay_writing"
-PROMPT_DIR="$trl_dir/trl/extras/mpo/prompts/essay_writing"
+DATASET="essay_writing"  # "summarization"  "ethical_reasoning"
+TASK="essay_writing"  # "summarization" "ethical_reasoning"
+PROMPT_DIR="$trl_dir/trl/extras/mpo/prompts/essay_writing"  # "summarization" "ethical_reasoning"
 
 ###############################################################################
 #  Main runner
@@ -33,7 +33,7 @@ run_experiment() {
     # ------------------------------------------------------------------------
     #  Naming & bookkeeping
     # ------------------------------------------------------------------------
-    local policy_model="policy-3b"
+    local policy_model="policy-1.5b"
     local model_name="${rubric_type}-${rm}"
 
     local exp_name="${policy_model}-ew-${exp_type}-${model_name}"
@@ -89,8 +89,8 @@ run_experiment() {
         --gradient_accumulation_steps "$grad_acc_steps" \
         --local_rollout_forward_batch_size 48 \
         --total_episodes 10000 \
-        --model_name_or_path "Qwen/Qwen2.5-3B-Instruct" \
-        --sft_model_path   "Qwen/Qwen2.5-3B-Instruct" \
+        --model_name_or_path "Qwen/Qwen2-1.5B-Instruct" \
+        --sft_model_path   "Qwen/Qwen2-1.5B-Instruct" \
         --response_length 400 \
         --missing_eos_penalty 1.0 \
         --kl_coef 0.02 \
@@ -106,7 +106,7 @@ run_experiment() {
 exp_type="ppo"
 rubric_type="iter0"  # "expert" "autoprompt" "oracle"
 prompt="evaluation_rubric_real_iter_0.txt"  # "evaluation_rubric_expert.txt" "evaluation_rubric_autoprompt.txt" "evaluation_rubric_oracle.txt"
-declare -a rms=("1.5b" "3b" "7b" "14b")
+declare -a rms=("32b" "72b")
 for rm in "${rms[@]}"; do
     run_experiment "$exp_type" "$rubric_type" "$rm" "$prompt"
 done
