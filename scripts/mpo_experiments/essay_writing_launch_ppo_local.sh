@@ -6,7 +6,7 @@ rm_address="http://0.0.0.0:30000"
 ###############################################################################
 #  Paths & constants
 ###############################################################################
-trl_dir="/home/elicer/Development/trl"
+trl_dir="$HOME/Development/trl"
 SCRIPT="$trl_dir/examples/scripts/mpo.py"
 
 WANDB_ENTITY="iterater"

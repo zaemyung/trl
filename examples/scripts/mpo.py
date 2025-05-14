@@ -91,14 +91,19 @@ if __name__ == "__main__":
         training_args.sft_model_path,
         torch_dtype=torch.bfloat16,
         trust_remote_code=model_args.trust_remote_code,
+        # attn_implementation="flash_attention_2",
     )
     value_model = AutoModelForCausalLMWithValueHead.from_pretrained(
         pretrained_model_name_or_path=base_causal_model,
         torch_dtype=torch.bfloat16,
         trust_remote_code=model_args.trust_remote_code,
+        # attn_implementation="flash_attention_2",
     )
     policy = AutoModelForCausalLM.from_pretrained(
-        training_args.sft_model_path, torch_dtype=torch.bfloat16, trust_remote_code=model_args.trust_remote_code
+        training_args.sft_model_path,
+        torch_dtype=torch.bfloat16,
+        trust_remote_code=model_args.trust_remote_code,
+        # attn_implementation="flash_attention_2",
     )
 
     # Override peft config for reproducibility

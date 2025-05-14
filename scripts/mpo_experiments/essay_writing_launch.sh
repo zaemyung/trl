@@ -49,7 +49,7 @@ run_experiment() {
     # ------------------------------------------------------------------------
     #  Naming & bookkeeping
     # ------------------------------------------------------------------------
-    local policy_model="policy-3b"
+    local policy_model="policy-1.5b"
     local model_name
     if [[ "$exp_type" == "mpo" ]]; then
         model_name="${rubric_type}-${rm}_${mrm}"
@@ -98,7 +98,7 @@ run_experiment() {
     # ------------------------------------------------------------------------
     # Launch policy fine-tuning
     # ------------------------------------------------------------------------
-    CUDA_VISIBLE_DEVICES="$CUDA_DEVICES" \
+    WANDB__SERVICE_WAIT=300 CUDA_VISIBLE_DEVICES="$CUDA_DEVICES" \
     accelerate launch --config_file "$ACC_CONFIG" \
         "$SCRIPT" \
         --dataset_name "$DATASET" \
@@ -118,8 +118,8 @@ run_experiment() {
         --gradient_accumulation_steps "$grad_acc_steps" \
         --local_rollout_forward_batch_size 48 \
         --total_episodes 10000 \
-        --model_name_or_path "Qwen/Qwen2.5-3B-Instruct" \
-        --sft_model_path   "Qwen/Qwen2.5-3B-Instruct" \
+        --model_name_or_path "Qwen/Qwen2.5-1.5B-Instruct" \
+        --sft_model_path   "Qwen/Qwen2.5-1.5B-Instruct" \
         --response_length 400 \
         --missing_eos_penalty 1.0 \
         --kl_coef 0.02 \
@@ -135,8 +135,10 @@ run_experiment() {
 exp_type="mpo"
 rubric_type="iter0"
 prompt="evaluation_rubric_real_iter_0.txt"
-declare -a rms=("1.5b" "3b" "7b" "14b")
-declare -a mrms=("7b" "14b" "1.5b" "3b")
+# declare -a rms=("1.5b" "7b" "14b" "3b")
+# declare -a mrms=("7b" "14b" "1.5b" "3b")
+declare -a rms=("72b")
+declare -a mrms=("72b")
 for rm in "${rms[@]}"; do
     for mrm in "${mrms[@]}"; do
         run_experiment "$exp_type" "$rubric_type" "$rm" "$mrm" "$prompt"

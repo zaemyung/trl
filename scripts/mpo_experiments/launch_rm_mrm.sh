@@ -33,7 +33,7 @@ kill_gpu_procs () {
   sudo pkill -f sglang 2>/dev/null || true
 }
 
-echo "[INFO] Cleaning GPUs"; kill_gpu_procs; sleep 5
+echo "[INFO] Cleaning GPUs"; kill_gpu_procs; sleep 10
 
 start_server () {
   local gpus=$1 dp=$2 suffix=$3 port=$4 log=$5

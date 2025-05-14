@@ -331,14 +331,14 @@ class MetaRewardModel(RewardModel):
         state = self.mrm_merge.run(merge_prompt=merge_prompt, backend=self.backend)
         merged_criteria = state["merged"]
 
+        # Keep only unique criteria
         regex = r"<item>(.*?)<\/item>"
         matches = re.findall(regex, merged_criteria, re.MULTILINE | re.DOTALL)
-        rubric_items = [m.strip() for m in matches]
-        if len(rubric_items) < 1 or len(merged_criteria) < 400:
-            print("merge step failed! Trying again...")
-            state = self.mrm_merge.run(merge_prompt=merge_prompt, temperature=0.5, backend=self.backend)
-            merged_criteria = state["merged"]
+        rubric_items = {m.strip() for m in matches}
+        rubric_items = [f"<item>\n{item}\n</item>" for item in rubric_items]
+        merged_criteria = "<rubric>\n" + "\n\n".join(rubric_items) + "</rubric>"
 
+        # Save newer version
         next_junior_prompt_path = os.path.join(
             self.prompts_directory, f"evaluation_rubric_iter_{current_iter_no + 1}.txt"
         )

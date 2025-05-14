@@ -139,7 +139,7 @@ class MetaRewardModelEssayWriting(MetaRewardModel, RewardModelEssayWriting):
     def mrm_analyze_and_refine(s, analyze_prompt: str, refine_prompt: str):
         s += system("You are a helpful English teacher.")
         s += user(analyze_prompt)
-        s += assistant(gen("analysis", temperature=0.02, max_tokens=2000, stop=["<EOE>", "</EOE>", "EOE"]))
+        s += assistant(gen("analysis", temperature=0.02, max_tokens=2000, stop=["<EOE>", "</EOE>"]))
         s += user(refine_prompt)
         s += user(
             "First, based on the analysis, determine how many unique scoring criteria are required and provide the total as a number:"
@@ -151,7 +151,7 @@ class MetaRewardModelEssayWriting(MetaRewardModel, RewardModelEssayWriting):
             s += user(
                 f'Write the scoring criterion #{i} in fewer than 300 words, following the specified structure, and conclude with "<EOE>":'
             )
-            s += assistant(gen(f"_item_{i}", temperature=0.02, max_tokens=500, stop=["<EOE>", "</EOE>", "EOE"]))
+            s += assistant(gen(f"_item_{i}", temperature=0.02, max_tokens=500, stop=["<EOE>", "</EOE>"]))
             criterion = s[f"_item_{i}"]
             refined_items.append(f"<item>\n{criterion}\n</item>")
             current_context_token_length = len(s.text().split(" ")) * 1.5
@@ -174,9 +174,7 @@ class MetaRewardModelEssayWriting(MetaRewardModel, RewardModelEssayWriting):
             s += user(
                 f'For merged criterion #{i}, write it in fewer than 300 words, following the specified structure, and conclude with "<EOE>":'
             )
-            s += assistant(
-                gen(f"_merged_item_{i}", temperature=temperature, max_tokens=500, stop=["<EOE>", "</EOE>", "EOE"])
-            )
+            s += assistant(gen(f"_merged_item_{i}", temperature=temperature, max_tokens=500, stop=["<EOE>", "</EOE>"]))
             criterion = s[f"_merged_item_{i}"]
             merged_items.append(f"<item>\n{criterion}\n</item>")
             current_context_token_length = len(s.text().split(" ")) * 1.5

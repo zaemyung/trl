@@ -491,7 +491,7 @@ class MPOTrainer(Trainer):
                     self.model, self.accelerator, gather_deepspeed3_params=self.args.ds3_gather_for_generation
                 ) as unwrapped_model:
                     query_responses, logitss = batch_generation(
-                        unwrapped_model.policy,
+                        unwrapped_model.policy.bfloat16(),
                         queries,
                         args.local_rollout_forward_batch_size,
                         processing_class.pad_token_id,
