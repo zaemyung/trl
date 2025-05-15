@@ -15,6 +15,8 @@ class RewardModelEthicalReasoning(RewardModel):
         super().__init__(
             reward_model_address=reward_model_address, experiment_directory=experiment_directory, **kwargs
         )
+        prompt_path, _ = self.get_latest_rubric_path_and_iteration_index()
+        self.rubric_items = self.read_rubric_items(prompt_path)
 
     def parse_task_descriptions_and_prompts(self, queries: list[str]) -> tuple[list[str], list[str]]:
         separation_regex = (

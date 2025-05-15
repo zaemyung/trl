@@ -9,7 +9,7 @@ For each [Evaluation Case], you will receive:
     - [Evaluation Execution]: the junior instructor's execution of the [Evaluation Plan]
   - [Evaluation Score]: the integer score assigned to the [Student Response] by the junior instructor
 
-Additionally, you will be given the current version of [Meta‑Level Guidelines] that details meta-lvel evaluation principles and best practices that the junior instructor may consult and apply when constructing their [Evaluation Plan].
+Additionally, you will be given the current version of [Meta‑Level Guidelines] that details meta-level evaluation principles and best practices that the junior instructor may consult and apply when constructing their [Evaluation Plan].
 
 [Start of Evaluation Cases]
 {{evaluation_cases}}
@@ -19,14 +19,10 @@ Additionally, you will be given the current version of [Meta‑Level Guidelines]
 {{meta_level_guidelines}}
 [End of Meta-Level Guidelines]
 
-Your Deliverable: a [Meta‑Level Analysis]
-
-Enclose the analysis between [Start of Meta-Level Analysis] and [End of Meta-Level Analysis], write no more than {{max_words}} words. Then, finish the generation right away by outputting "<EOE>".
-
-The [Meta-Level Analysis] shoud contain:
+Based on these contexts, you need to provide a meta‑level analysis. Your analysis shoud contain:
 - Identification of any inconsistency or incorrectness in the [Evaluation Cases].
 - Suggestion of additional diagnostic checks that would raise feedback quality.
 Add problem-specific examples where appropriate.
 Keep the tone constructive and reference any pattern you see across cases so the junior instructor can generalize.
 
-Again, enclose the analysis between [Start of Meta-Level Analysis] and [End of Meta-Level Analysis], write no more than {{max_words}} words. Then, finish the generation right away by outputting "<EOE>".
+Your analysis should be no more than {{max_words}} words. Finish your analysis by writing "<EOE>".

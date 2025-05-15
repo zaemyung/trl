@@ -1,6 +1,7 @@
 import json
 import os
 import random
+import sys
 from glob import glob
 from pprint import pprint
 
@@ -14,19 +15,67 @@ from rich.progress import track
 
 load_dotenv()  # take environment variables from .env.
 
-model_names_to_annon = {
-    "32b_32b": "ModelA",
-    "32b_72b": "ModelB",
-    "72b_32b": "ModelC",
-    "72b_72b": "ModelD",
-    # "autoprompt-32b": "ModelE",
-    # "autoprompt-72b": "ModelF",
-    # "expert-32b": "ModelG",
-    # "expert-72b": "ModelH",
-    # "oracle-32b": "ModelI",
-    # "oracle-72b": "ModelJ",
-    # "base-1.5b": "ModelK",
-}
+# model_names_to_annon = {
+#     "32b_32b": "ModelA",
+#     "32b_72b": "ModelB",
+#     "72b_32b": "ModelC",
+#     "72b_72b": "ModelD",
+#     "autoprompt-32b": "ModelE",
+#     "autoprompt-72b": "ModelF",
+#     "expert-32b": "ModelG",
+#     "expert-72b": "ModelH",
+#     "oracle-32b": "ModelI",
+#     "oracle-72b": "ModelJ",
+#     "base-1.5b": "ModelK",
+#     "iter0-32b": "ModelI",
+#     "iter0-72b": "ModelJ",
+# }
+
+exp_name = sys.argv[1]  # "mpo_variations" "rm_32" "rm_72" "32b_32bvs32b_72b" ""72b_32bvs72b_72b""
+num_matches = 2000
+print(f"exp_name is: {exp_name}")
+
+if exp_name == "rm_32":
+    model_names_to_annon = {
+        "32b_72b": "ModelA",
+        "autoprompt-32b": "ModelB",
+        "expert-32b": "ModelC",
+        "base-1.5b": "ModelD",
+        "iter0-32b": "ModelE",
+    }
+elif exp_name == "rm_72":
+    model_names_to_annon = {
+        "72b_72b": "ModelA",
+        "autoprompt-72b": "ModelB",
+        "expert-72b": "ModelC",
+        "base-1.5b": "ModelD",
+        "iter0-72b": "ModelE",
+    }
+elif exp_name == "mpo_variations":
+    model_names_to_annon = {
+        "32b_32b": "ModelA",
+        "32b_72b": "ModelB",
+        "72b_32b": "ModelC",
+        "72b_72b": "ModelD",
+    }
+elif exp_name == "32b_32bvs32b_72b":
+    model_names_to_annon = {
+        "32b_32b": "ModelA",
+        "32b_72b": "ModelB",
+    }
+elif exp_name == "72b_32bvs72b_72b":
+    model_names_to_annon = {
+        "72b_32b": "ModelA",
+        "72b_72b": "ModelB",
+    }
+elif exp_name == "mpo_vs_oracle":
+    model_names_to_annon = {
+        "32b_72b": "ModelB",
+        "72b_72b": "ModelD",
+        "oracle-32b": "ModelI",
+        "oracle-72b": "ModelJ",
+    }
+
 annon_to_model_names = {v: k for k, v in model_names_to_annon.items()}
 
 
@@ -298,17 +347,23 @@ def merge_results(output_dir: str, exp_name: str):
     pprint(f"Mean scores: {mean_scores}")
     pprint(f"Mean stds: {mean_stds}")
 
+    merged_details_path = os.path.join(output_dir, f"{exp_name}-merged.details.json")
+    merged_scores_path = os.path.join(output_dir, f"{exp_name}-merged.scores.json")
+    with open(merged_details_path, "w") as f:
+        json.dump(all_details, f, indent=2)
+    all_stats = {"mean elo": mean_scores, "mean stds": mean_stds}
+    with open(merged_scores_path, "w") as f:
+        json.dump(all_stats, f, indent=2)
+
 
 if __name__ == "__main__":
     client = openai.OpenAI(api_key=os.environ["OPENAI_KEY"])
     generation_dir = "results/policy-1.5b/generations/essay_writing"
     output_dir = "results/policy-1.5b/elo_scores/essay_writing"
-    exp_name = "mpo_variations"
-    # exp_name = "72b_32bvs72b_72b"
     separation_regex = r"user(.+?)Instructions:(.+?)Your Writing:"
     os.makedirs(output_dir, exist_ok=True)
 
-    for i in range(3, 6):
-        run_sim(i, 2000, generation_dir, output_dir, exp_name, separation_regex)
+    for i in range(1, 6):
+        run_sim(i, num_matches, generation_dir, output_dir, exp_name, separation_regex)
 
     merge_results(output_dir, exp_name)

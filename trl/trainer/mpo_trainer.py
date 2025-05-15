@@ -19,7 +19,7 @@ import os
 import shutil
 import textwrap
 import time
-from collections import OrderedDict, defaultdict
+from collections import defaultdict
 from contextlib import contextmanager, nullcontext
 from typing import Optional, Union
 
@@ -94,6 +94,13 @@ def get_task_specific_gatherings(task_name: str) -> dict[str, list]:
         return {}
     elif task_name == "summarization":
         return {}
+    elif task_name == "math_reasoning":
+        return {
+            "gold_answers": {"do_detokenize": True},
+            "solutions": {"do_detokenize": True},
+            "domain_ids": {"do_detokenize": False},
+            "cluster_ids": {"do_detokenize": False},
+        }
     else:
         raise ValueError(
             f"Unknown task name {task_name}. Allowed values are: ['essay_writing', 'summarization', 'math_reasoning', 'ethical_reasoning']."
@@ -164,7 +171,26 @@ class MPOTrainer(Trainer):
         os.makedirs(self.checkpoints_directory, exist_ok=True)
         source_prompts_directory = os.path.join(os.path.dirname(mpo.__file__), "prompts", self.args.task_name)
         shutil.copytree(source_prompts_directory, self.prompts_directory, dirs_exist_ok=True)
-        shutil.copy2(args.init_rm_prompt, os.path.join(self.prompts_directory, "evaluation_rubric_iter_0.txt"))
+
+        # TODO: handle math specific code more gracefully
+        if args.task_name == "math_reasoning":
+            math_domains_to_idx = {
+                "algebra": 0,
+                "counting_and_probability": 1,
+                "geometry": 2,
+                "intermediate_algebra": 3,
+                "number_theory": 4,
+                "prealgebra": 5,
+                "precalculus": 6,
+            }
+            self.cluster_size = 3
+            for domain in math_domains_to_idx.keys():
+                for cluster_idx in range(1, self.cluster_size + 1):
+                    domain_cluster_dir = os.path.join(self.prompts_directory, domain, f"cluster-{cluster_idx}")
+                    os.makedirs(domain_cluster_dir, exist_ok=True)
+                    shutil.copy2(args.init_rm_prompt, os.path.join(domain_cluster_dir, "evaluation_rubric_iter_0.txt"))
+        else:
+            shutil.copy2(args.init_rm_prompt, os.path.join(self.prompts_directory, "evaluation_rubric_iter_0.txt"))
         print(f"Using {args.init_rm_prompt} as `evaluation_rubric_iter_0.txt`")
 
         # Define the collator if not provided
@@ -218,13 +244,23 @@ class MPOTrainer(Trainer):
         else:
             self.ref_model = create_reference_model(self.policy_model)
 
-        self.reward_model = mpo.get_reward_model(
-            self.args.task_name, self.reward_model_address, self.experiment_directory
-        )
+        self.rm_kwargs = {
+            "task_name": self.args.task_name,
+            "reward_model_address": self.reward_model_address,
+            "experiment_directory": self.experiment_directory,
+        }
+        if self.args.task_name == "math_reasoning":
+            self.rm_kwargs["cluster_size"] = self.cluster_size
+        self.mrm_kwargs = {
+            "task_name": self.args.task_name,
+            "meta_reward_model_address": self.meta_reward_model_address,
+            "experiment_directory": self.experiment_directory,
+        }
+        if self.args.task_name == "math_reasoning":
+            self.mrm_kwargs["cluster_size"] = self.cluster_size
+        self.reward_model = mpo.get_reward_model(**self.rm_kwargs)
         time.sleep(3)
-        self.meta_reward_model = mpo.get_meta_reward_model(
-            self.args.task_name, self.meta_reward_model_address, self.experiment_directory
-        )
+        self.meta_reward_model = mpo.get_meta_reward_model(**self.mrm_kwargs)
         self.train_dataset = train_dataset
         self.train_dataset_len = len(train_dataset)
         self.value_model = value_model
@@ -469,8 +505,10 @@ class MPOTrainer(Trainer):
             "junior_evaluations": [],
             "queries": [],
             "student_responses": [],
-            **get_task_specific_gatherings(self.args.task_name),
         }
+        task_gathering_infos = get_task_specific_gatherings(self.args.task_name)
+        for gather_key in task_gathering_infos:
+            gatherings[gather_key] = []
 
         for update in tqdm(
             range(1, args.num_total_batches + 1), total=args.num_total_batches + 1, desc="Overall Training.."
@@ -487,6 +525,15 @@ class MPOTrainer(Trainer):
                 scores = []
                 sequence_lengths = []
                 values = []
+
+                # task-specific gatherings for current batch
+                curr_task_gatherings = {}
+                for gather_key, gather_info in task_gathering_infos.items():
+                    gather_value = data[gather_key]
+                    if gather_info["do_detokenize"]:
+                        gather_value = processing_class.batch_decode(gather_value, skip_special_tokens=True)
+                    curr_task_gatherings[gather_key] = gather_value
+
                 with unwrap_model_for_generation(
                     self.model, self.accelerator, gather_deepspeed3_params=self.args.ds3_gather_for_generation
                 ) as unwrapped_model:
@@ -540,18 +587,26 @@ class MPOTrainer(Trainer):
                             postprocessed_response, skip_special_tokens=True
                         )
 
+                        local_task_gatherings = {
+                            k: v[i : i + args.local_rollout_forward_batch_size]
+                            for k, v in curr_task_gatherings.items()
+                        }
+
                         if isinstance(self.reward_model, mpo.RewardModel):
                             score, evaluation = get_reward_for_mpo(
                                 self.reward_model,
                                 detokenized_query,
                                 detokenized_response,
                                 return_evaluations=True,
+                                **local_task_gatherings,
                             )
                             assert len(score) == len(evaluation) == len(detokenized_query) == len(detokenized_response)
                             gatherings["junior_scores"].extend(score)
                             gatherings["junior_evaluations"].extend(evaluation)
                             gatherings["queries"].extend(detokenized_query)
                             gatherings["student_responses"].extend(detokenized_response)
+                            for gather_key in task_gathering_infos:
+                                gatherings[gather_key].extend(local_task_gatherings[gather_key])
 
                             score = torch.tensor(score, device=device, dtype=torch.float)
                         else:
@@ -806,9 +861,7 @@ class MPOTrainer(Trainer):
 
                 self.accelerator.wait_for_everyone()
 
-                self.reward_model = mpo.get_reward_model(
-                    self.args.task_name, self.reward_model_address, self.experiment_directory
-                )
+                self.reward_model = mpo.get_reward_model(**self.rm_kwargs)
 
                 self.accelerator.wait_for_everyone()
 
@@ -835,11 +888,21 @@ class MPOTrainer(Trainer):
         )
 
         table = defaultdict(list)
+        task_gathering_infos = get_task_specific_gatherings(self.args.task_name)
         with unwrap_model_for_generation(
             self.model, self.accelerator, gather_deepspeed3_params=self.args.ds3_gather_for_generation
         ) as unwrapped_model:
             for batch in self.eval_dataloader:
                 query = batch["input_ids"]
+
+                # task-specific gatherings for current batch
+                curr_task_gatherings = {}
+                for gather_key, gather_info in task_gathering_infos.items():
+                    gather_value = batch[gather_key]
+                    if gather_info["do_detokenize"]:
+                        gather_value = processing_class.batch_decode(gather_value, skip_special_tokens=True)
+                    curr_task_gatherings[gather_key] = gather_value
+
                 with torch.no_grad():
                     context_length = query.shape[1]
                     query_response, _ = batch_generation(
@@ -874,6 +937,7 @@ class MPOTrainer(Trainer):
                             detokenized_query,
                             detokenized_response,
                             return_evaluations=True,
+                            **curr_task_gatherings,
                         )
 
                         score = torch.tensor(score, device=self.accelerator.device, dtype=torch.float)

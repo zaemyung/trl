@@ -30,7 +30,8 @@ def prepare_essay_writing_dataset(tokenizer, split: str = "test", train_size: in
         )
 
     dataset = _prepare_dataset(_dataset, tokenizer)
-    dataset = dataset.shuffle(seed=42)
+    if split == "train":
+        dataset = dataset.shuffle(seed=42)
     assert dataset[0]["input_ids"][-1] != tokenizer.eos_token_id, "The last token should not be an EOS token"
     if split == "train" and train_size is not None:
         return dataset.select(range(train_size))
@@ -38,7 +39,7 @@ def prepare_essay_writing_dataset(tokenizer, split: str = "test", train_size: in
     return dataset
 
 
-def prepare_mathematical_reasoning_dataset(tokenizer, data_file_paths: list[str]):
+def prepare_mathematical_reasoning_dataset(tokenizer, split: str, data_file_path: list[str]):
     def extract_boxed_content(string: str):
         start_token = r"\boxed{"
         start = string.find(start_token)
@@ -83,16 +84,21 @@ def prepare_mathematical_reasoning_dataset(tokenizer, data_file_paths: list[str]
             "input_ids": input_ids,
             "lengths": len(input_ids),
             "answer": tokenizer.encode(answer.strip()),
+            "domain_id": sample["domain_id"],
+            "cluster_id": sample["cluster_id"],
+            "solution": tokenizer.encode(sample["solution"], add_special_tokens=False, padding=False),
         }
 
-    dataset = load_dataset("json", data_files=data_file_paths, split="train")
+    dataset = load_dataset("json", data_files=data_file_path, split="train")
     dataset = dataset.map(
         tokenize,
         remove_columns=dataset.column_names,
         num_proc=mp.cpu_count(),
         load_from_cache_file=True,
     )
-    dataset = dataset.shuffle(seed=42)
+    if split == "train":
+        dataset = dataset.shuffle(seed=42)
+    return dataset
 
 
 def prepare_summarization_dataset(tokenizer, split: str = "test", train_size: int = None):
@@ -131,7 +137,8 @@ def prepare_summarization_dataset(tokenizer, split: str = "test", train_size: in
         load_from_cache_file=True,
         num_proc=mp.cpu_count(),
     )
-    tokenized_dataset = tokenized_dataset.shuffle(seed=42)
+    if split == "train":
+        tokenized_dataset = tokenized_dataset.shuffle(seed=42)
     if split == "train" and train_size is not None:
         return tokenized_dataset.select(range(train_size))
     return tokenized_dataset
@@ -185,7 +192,8 @@ def prepare_ethical_reasoning_dataset(tokenizer, split: str, data_file_path: str
         num_proc=mp.cpu_count(),
         load_from_cache_file=True,
     )
-    tokenized_dataset = tokenized_dataset.shuffle(seed=42)
+    if split == "train":
+        tokenized_dataset = tokenized_dataset.shuffle(seed=42)
     if split == "train" and train_size is not None:
         return tokenized_dataset.select(range(train_size))
     return tokenized_dataset

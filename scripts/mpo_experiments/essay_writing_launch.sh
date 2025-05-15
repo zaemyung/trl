@@ -21,14 +21,14 @@ remote_host=${4:-elicer@central-02.tcp.tunnel.elice.io}   # default unchanged
 ###############################################################################
 #  Paths & constants
 ###############################################################################
-trl_dir="/home/elicer/Development/trl"
+trl_dir="$HOME/Development/trl"
 SCRIPT="$trl_dir/examples/scripts/mpo.py"
 
 WANDB_ENTITY="iterater"
 WANDB_PROJECT="mpo-new"
-DATASET="essay_writing"
-TASK="essay_writing"
-PROMPT_DIR="$trl_dir/trl/extras/mpo/prompts/essay_writing"
+DATASET="ethical_reasoning"
+TASK="ethical_reasoning"
+PROMPT_DIR="$trl_dir/trl/extras/mpo/prompts/ethical_reasoning"
 
 ###############################################################################
 #  Main runner
@@ -57,7 +57,7 @@ run_experiment() {
         model_name="${rubric_type}-${rm}"
     fi
 
-    local exp_name="${policy_model}-ew-${exp_type}-${model_name}"
+    local exp_name="${policy_model}-summ-${exp_type}-${model_name}"
     local output_dir="$trl_dir/models/${policy_model}/${TASK}/${exp_type}/${model_name}"
     if [ -d $output_dir ]; then
         printf "$output_dir already exists. Skipped.\n"
@@ -65,11 +65,11 @@ run_experiment() {
     fi
 
     # gradient accumulation scaling
-    local grad_acc_steps=4
+    local grad_acc_steps=8
 
     # MPO interval
     local num_mpo_interval=99999999
-    [[ "$exp_type" == "mpo" ]] && num_mpo_interval=10
+    [[ "$exp_type" == "mpo" ]] && num_mpo_interval=20
 
     local _mrm_address=$mrm_address
     [[ $rm == $mrm ]] && _mrm_address=$rm_address
@@ -114,13 +114,13 @@ run_experiment() {
         --save_n_updates 20 \
         --num_mpo_samples 16 \
         --num_mini_batches 1 \
-        --per_device_train_batch_size 4 \
+        --per_device_train_batch_size 1 \
         --gradient_accumulation_steps "$grad_acc_steps" \
         --local_rollout_forward_batch_size 48 \
         --total_episodes 10000 \
         --model_name_or_path "Qwen/Qwen2.5-1.5B-Instruct" \
         --sft_model_path   "Qwen/Qwen2.5-1.5B-Instruct" \
-        --response_length 400 \
+        --response_length 600 \
         --missing_eos_penalty 1.0 \
         --kl_coef 0.02 \
         --stop_token "eos" \
@@ -135,12 +135,15 @@ run_experiment() {
 exp_type="mpo"
 rubric_type="iter0"
 prompt="evaluation_rubric_real_iter_0.txt"
+# rubric_type="autoprompt"
+# prompt="evaluation_rubric_autoprompt.txt"
 # declare -a rms=("1.5b" "7b" "14b" "3b")
 # declare -a mrms=("7b" "14b" "1.5b" "3b")
-declare -a rms=("72b")
-declare -a mrms=("72b")
+declare -a rms=("32b")
+declare -a mrms=("32b")
 for rm in "${rms[@]}"; do
     for mrm in "${mrms[@]}"; do
-        run_experiment "$exp_type" "$rubric_type" "$rm" "$mrm" "$prompt"
+        # run_experiment "$exp_type" "$rubric_type" "$rm" "$mrm" "$prompt"
+        run_experiment "$exp_type" "$rubric_type" "$rm" "$rm" "$prompt"
     done
 done

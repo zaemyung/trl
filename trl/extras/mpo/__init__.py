@@ -1,7 +1,6 @@
 import json
 import os
 import random
-import time
 from collections import Counter
 from glob import glob
 from time import time
@@ -32,8 +31,9 @@ def get_task_dataset(task_name: str, tokenizer, split: str):
     elif task_name == "summarization":
         dataset = prepare_summarization_dataset(tokenizer, split, train_size=10000)
     elif task_name == "math_reasoning":
-        data_file_paths = os.path.join(os.path.dirname(mpo.__file__), "corpora", "MATH", f"{split}/**/*.json")
-        dataset = prepare_mathematical_reasoning_dataset(tokenizer, data_file_paths=data_file_paths)
+        corpus_filename = "MATH_train_clustered.json" if split == "train" else "MATH_test_clustered.json"
+        data_file_path = os.path.join(os.path.dirname(mpo.__file__), "corpora", "MATH", corpus_filename)
+        dataset = prepare_mathematical_reasoning_dataset(tokenizer, split, data_file_path=data_file_path)
     elif task_name == "ethical_reasoning":
         corpus_filename = "train.scruples-anecdotes.jsonl" if split == "train" else "dev-test.scruples-anecdotes.jsonl"
         data_file_path = os.path.join(os.path.dirname(mpo.__file__), "corpora", "anecdotes", corpus_filename)
@@ -45,14 +45,14 @@ def get_task_dataset(task_name: str, tokenizer, split: str):
     return dataset
 
 
-def get_reward_model(task_name: str, reward_model_address: str, experiment_directory: str):
+def get_reward_model(task_name: str, reward_model_address: str, experiment_directory: str, **kwargs):
     """
     Load the reward model based on the task name.
     """
     from trl.extras.mpo.rm_essay_writing import RewardModelEssayWriting
     from trl.extras.mpo.rm_ethical_reasoning import RewardModelEthicalReasoning
+    from trl.extras.mpo.rm_math_reasoning import RewardModelMathReasoning
     from trl.extras.mpo.rm_summarization import RewardModelSummarization
-    # from trl.extras.mpo.rm_math_reasoning import RewardModelMathReasoning
 
     if task_name == "essay_writing":
         reward_model = RewardModelEssayWriting(
@@ -64,11 +64,13 @@ def get_reward_model(task_name: str, reward_model_address: str, experiment_direc
             reward_model_address=reward_model_address,
             experiment_directory=experiment_directory,
         )
-    # elif task_name == "math_reasoning":
-    #     reward_model = RewardModelMathReasoning(
-    #         reward_model_address=reward_model_address,
-    #         experiment_directory=experiment_directory,
-    #     )
+    elif task_name == "math_reasoning":
+        cluster_size = kwargs.get("cluster_size")
+        reward_model = RewardModelMathReasoning(
+            reward_model_address=reward_model_address,
+            experiment_directory=experiment_directory,
+            cluster_size=cluster_size,
+        )
     elif task_name == "ethical_reasoning":
         reward_model = RewardModelEthicalReasoning(
             reward_model_address=reward_model_address,
@@ -81,15 +83,14 @@ def get_reward_model(task_name: str, reward_model_address: str, experiment_direc
     return reward_model
 
 
-def get_meta_reward_model(task_name: str, reward_model_address: str, experiment_directory: str):
+def get_meta_reward_model(task_name: str, reward_model_address: str, experiment_directory: str, **kwargs):
     """
     Load the meta reward model based on the task name.
     """
     from trl.extras.mpo.rm_essay_writing import MetaRewardModelEssayWriting
     from trl.extras.mpo.rm_ethical_reasoning import MetaRewardModelEthicalReasoning
+    from trl.extras.mpo.rm_math_reasoning import MetaRewardModelMathReasoning
     from trl.extras.mpo.rm_summarization import MetaRewardModelSummarization
-
-    # from trl.extras.mpo.rm_math_reasoning import MetaRewardModelMathReasoning
 
     if task_name == "essay_writing":
         meta_reward_model = MetaRewardModelEssayWriting(
@@ -101,11 +102,13 @@ def get_meta_reward_model(task_name: str, reward_model_address: str, experiment_
             reward_model_address=reward_model_address,
             experiment_directory=experiment_directory,
         )
-    # elif task_name == "math_reasoning":
-    #     meta_reward_model = MetaRewardModelMathReasoning(
-    #         reward_model_address=reward_model_address,
-    #         experiment_directory=experiment_directory,
-    #     )
+    elif task_name == "math_reasoning":
+        cluster_size = kwargs.get("cluster_size")
+        meta_reward_model = MetaRewardModelMathReasoning(
+            reward_model_address=reward_model_address,
+            experiment_directory=experiment_directory,
+            cluster_size=cluster_size,
+        )
     elif task_name == "ethical_reasoning":
         meta_reward_model = MetaRewardModelEthicalReasoning(
             reward_model_address=reward_model_address,
@@ -128,8 +131,6 @@ class RewardModel:
         self.experiment_directory = experiment_directory
         self.prompts_directory = os.path.join(self.experiment_directory, "prompts")
         self.backend = RuntimeEndpoint(self.reward_model_address)
-        prompt_path, _ = self.get_latest_rubric_path_and_iteration_index()
-        self.rubric_items = self.read_rubric_items(prompt_path)
 
     def get_latest_rubric_path_and_iteration_index(self) -> tuple[str, int]:
         """
@@ -203,10 +204,14 @@ class MetaRewardModel(RewardModel):
         mrm_analyze_filename = kwargs.get("mrm_analyze_filename", "mrm_analyze.txt")
         mrm_refine_filename = kwargs.get("mrm_refine_filename", "mrm_refine.txt")
         mrm_merge_filename = kwargs.get("mrm_merge_filename", "mrm_merge.txt")
-        self.prescreen_template = env.get_template(mrm_prescreen_filename)
-        self.analyze_template = env.get_template(mrm_analyze_filename)
-        self.refine_template = env.get_template(mrm_refine_filename)
-        self.merge_template = env.get_template(mrm_merge_filename)
+        if mrm_prescreen_filename is not None:
+            self.prescreen_template = env.get_template(mrm_prescreen_filename)
+        if mrm_analyze_filename is not None:
+            self.analyze_template = env.get_template(mrm_analyze_filename)
+        if mrm_refine_filename is not None:
+            self.refine_template = env.get_template(mrm_refine_filename)
+        if mrm_merge_filename is not None:
+            self.merge_template = env.get_template(mrm_merge_filename)
 
     @function
     def mrm_prescreen(s, prescreen_prompt: str):

@@ -1,2 +1,2 @@
-Now, based on the [Meta-Level Analysis], refine the [Meta-Level Guidelines] by faithfully addressing the [Meta‑Level Analysis].
-Enclose the refined guidelines between [Start of Meta-Level Guidelines] and [End of Meta-Level Guidelines], write no more than {{max_words}} words. Then, finish the generation right away by outputting "<EOE>".
+Now, based on the [Meta-Level Analysis], refine and write the next version of [Meta-Level Guidelines] by faithfully addressing the [Meta‑Level Analysis].
+Your refinements should be no more than {{max_words}} words. End your generation by outputting "<EOE>". Your Meta-Level Guidelines:
