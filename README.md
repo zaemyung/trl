@@ -1,5 +1,46 @@
+# Meta Policy Optimization
 **This repository contains the codebase for the paper, "Toward Evaluative Thinking: Meta Policy Optimization with Evolving Reward Models," implemented using trl version 0.17.**
 
+## What’s Been Implemented?
+
+- **Main script** for launching MPO training on top of PPO: `examples/scripts/mpo.py`
+- **`MPOTrainer`**: Located in `trl/trainer/mpo_trainer.py`, this extends `PPOTrainer` to implement the full MPO procedure as described in the paper.
+- **`MPOConfig`**: Defined in `trl/trainer/mpo_config.py`, this contains all hyperparameters for MPO training.
+- **Processed corpora** for four tasks (essay writing, summarization, ethical reasoning, and mathematical reasoning) are provided in `trl/extras/mpo/corpora`.
+- **Initial prompts and meta-prompts** for each task are located in `trl/extras/mpo/prompts`.
+- **LLM-based reward models (RMs)** and **meta-reward models (MRMs)** are implemented in task-specific files under `trl/extras/mpo/rm_{task_name}.py`, and dataset loading/processing is handled in `trl/extras/mpo/mpo_datasets.py`.
+- **Utility functions** for MPO training are implemented in `trl/trainer/utils.py`.
+- **Additional scripts** for launching remote LLM servers and evaluating trained models are provided in `scripts/mpo_experiments`.
+
+## Installation & Execution Requirements
+
+- Running MPO requires two components:
+  1. **A primary node or subset of GPUs** dedicated to RL training.
+  2. **A separate node or the remaining GPUs** dedicated to serving reward scores in an online fashion.
+- For the former, install this repository using `virtualenv` and `uv` (recommended for clean and reproducible environments):
+    ```
+    $ python -m venv trl-venv
+    $ . trl-venv/bin/activate
+    $ pip install --upgrade pip
+    $ pip install uv
+    $ uv pip install -e .
+    $ uv pip install peft natsort wandb sglang deepspeed==0.15.4 accelerate==0.34.2 python-notification python-dotenv
+    ```
+- For LLM-based online reward modeling, we use the SGLang framework.
+    ```
+    $ python -m venv sglang-venv
+    $ . sglang-venv/bin/activate
+    $ pip install --upgrade pip
+    $ pip install uv
+    $ uv pip install "sglang[all]>=0.4.6.post4"
+    $ uv pip install vllm==0.8.4
+    ```
+  - Refer to the [SGLang documentation](https://docs.sglang.ai/) for more details.
+- Training start and end notifications are currently sent via [Pushover](https://pushover.net/api). If you do not wish to use this feature, you can simply comment out the relevant lines in the launch script: `examples/scripts/mpo.py`.
+- The `launch_mpo.sh` script in `scripts/mpo_experiments` demonstrates how to train models using MPO with different parameter configurations.
+- The `launch_rm_mrm.sh` script in `scripts/mpo_experiments` shows how to instantiate and serve LLMs via SGLang over an SSH connection.
+
+Below is the README from trl repository.
 # TRL - Transformer Reinforcement Learning
 
 <div style="text-align: center">
@@ -26,7 +67,7 @@ TRL is a cutting-edge library designed for post-training foundation models using
 
 - **Trainers**: Various fine-tuning methods are easily accessible via trainers like [`SFTTrainer`](https://huggingface.co/docs/trl/sft_trainer), [`GRPOTrainer`](https://huggingface.co/docs/trl/grpo_trainer), [`DPOTrainer`](https://huggingface.co/docs/trl/dpo_trainer), [`RewardTrainer`](https://huggingface.co/docs/trl/reward_trainer) and more.
 
-- **Efficient and scalable**: 
+- **Efficient and scalable**:
     - Leverages [🤗 Accelerate](https://github.com/huggingface/accelerate) to scale from single GPU to multi-node clusters using methods like [DDP](https://pytorch.org/tutorials/intermediate/ddp_tutorial.html) and [DeepSpeed](https://github.com/deepspeedai/DeepSpeed).
     - Full integration with [🤗 PEFT](https://github.com/huggingface/peft) enables training on large models with modest hardware via quantization and LoRA/QLoRA.
     - Integrates [🦥 Unsloth](https://github.com/unslothai/unsloth) for accelerating training using optimized kernels.
@@ -169,7 +210,7 @@ trl sft --model_name_or_path Qwen/Qwen2.5-0.5B \
 ```bash
 trl dpo --model_name_or_path Qwen/Qwen2.5-0.5B-Instruct \
     --dataset_name argilla/Capybara-Preferences \
-    --output_dir Qwen2.5-0.5B-DPO 
+    --output_dir Qwen2.5-0.5B-DPO
 ```
 
 Read more about CLI in the [relevant documentation section](https://huggingface.co/docs/trl/main/en/clis) or use `--help` for more details.
