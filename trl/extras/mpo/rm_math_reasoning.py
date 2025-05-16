@@ -215,11 +215,11 @@ class RewardModelMathReasoning(RewardModel):
     Reward model for mathematical reasoning task.
     """
 
-    def __init__(self, reward_model_address: str, experiment_directory: str, cluster_size: int, **kwargs):
+    def __init__(self, reward_model_address: str, experiment_directory: str, **kwargs):
         super().__init__(
             reward_model_address=reward_model_address, experiment_directory=experiment_directory, **kwargs
         )
-        self.cluster_size = cluster_size
+        self.cluster_size = kwargs.get("cluster_size", None)
         self.domain_cluster_guidelines, _ = self.read_meta_level_guidelines_and_iter_nos()
         junior_env = jinja2.Environment(loader=jinja2.FileSystemLoader(self.prompts_directory))
         self.score_plan_template = junior_env.get_template("rm_plan.txt")
@@ -396,7 +396,7 @@ class RewardModelMathReasoning(RewardModel):
                 try:
                     plan = s["plan"]
                     execute = s["execute"]
-                    scores[sample_idx] = s["score"]
+                    scores[sample_idx] = int(s["score"])
                     feedback_str = f"<reason>For this specific math problem, the junior instructor developed the [Evaluation Plan] outlined below and then executed it as follows.\n\n{plan}\n\n{execute}\n</reason> <score>{scores[sample_idx]}</score>"
                     feedbacks[sample_idx] = feedback_str
                 except Exception as e:
@@ -416,13 +416,13 @@ class MetaRewardModelMathReasoning(MetaRewardModel, RewardModelMathReasoning):
     Meta reward model for mathematical reasoning task.
     """
 
-    def __init__(self, reward_model_address: str, experiment_directory: str, cluster_size: int, **kwargs):
+    def __init__(self, reward_model_address: str, experiment_directory: str, **kwargs):
         super().__init__(
             reward_model_address=reward_model_address,
             experiment_directory=experiment_directory,
             **kwargs,
         )
-        self.cluster_size = cluster_size
+        self.cluster_size = kwargs.get("cluster_size", None)
 
     @function
     def mrm_prescreen(s, prescreen_prompt: str):
@@ -497,7 +497,7 @@ class MetaRewardModelMathReasoning(MetaRewardModel, RewardModelMathReasoning):
         self,
         batch_index: int,
         return_evaluations: bool = True,
-        num_samples: int = 20,
+        num_samples: int = None,
         do_prescreening: bool = False,
         **kwargs,
     ) -> dict[str, Any]:

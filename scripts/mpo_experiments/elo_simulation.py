@@ -75,6 +75,8 @@ elif exp_name == "mpo_vs_oracle":
         "oracle-32b": "ModelI",
         "oracle-72b": "ModelJ",
     }
+elif exp_name == "summarization":
+    model_names_to_annon = {"32b_32b": "ModelA", "autoprompt-32b": "ModelB", "iter0-32b": "ModelC", "base": "ModelD"}
 
 annon_to_model_names = {v: k for k, v in model_names_to_annon.items()}
 
@@ -113,7 +115,7 @@ def update_elo(rating_a, rating_b, score_a, k=32, BASE=10, SCALE=400):
     return new_rating_a, new_rating_b
 
 
-def call_openai_api(prompt, temperature=0.0, model="gpt-3.5-turbo"):
+def call_openai_api_essay_writing(prompt, temperature=0.0, model="gpt-3.5-turbo"):
     completion = client.chat.completions.create(
         model=model,
         messages=[
@@ -129,7 +131,27 @@ def call_openai_api(prompt, temperature=0.0, model="gpt-3.5-turbo"):
     return completion.choices[0].message.content
 
 
-def build_comparison_prompt(query, model_a_name, model_a_response, model_b_name, model_b_response):
+def call_openai_api_summarization(prompt, temperature=0.0, model="gpt-3.5-turbo"):
+    """
+    Calls the OpenAI model to evaluate a prompt and returns
+    the response text.
+    """
+    completion = client.chat.completions.create(
+        model=model,
+        messages=[
+            {
+                "role": "system",
+                "content": "You are an impartial and discerning evaluator. Assess which written summary most effectively represents the given government bill, taking into account factors such as conciseness, accuracy, and faithfulness to the original content.",
+            },
+            {"role": "user", "content": prompt},
+        ],
+        temperature=temperature,
+        stop="<EOE>",
+    )
+    return completion.choices[0].message.content
+
+
+def build_comparison_prompt_essay_writing(query, model_a_name, model_a_response, model_b_name, model_b_response):
     """
     Constructs a user prompt that includes the query and the two candidate responses,
     asking the judge (ChatGPT) to pick which model's response is better.
@@ -149,10 +171,38 @@ Which response is better overall? Please simply reply with either '<winner>{mode
     return prompt.strip()
 
 
-def judge_responses(query, model_a_name, model_a_response, model_b_name, model_b_response, judge_model="gpt-4o"):
+def build_comparison_prompt_summarization(query, model_a_name, model_a_response, model_b_name, model_b_response):
+    """
+    Constructs a user prompt that includes the query and the two candidate responses,
+    asking the judge (ChatGPT) to pick which model's response is better.
+    """
+    prompt = f"""
+Government Bill:
+{query}
+
+Summary from {model_a_name}:
+{model_a_response}
+
+Summary from {model_b_name}:
+{model_b_response}
+
+Which summary is better overall? Please simply reply with either '<winner>{model_a_name}</winner>' or '<winner>{model_b_name}</winner>', followed by <EOE>.
+"""
+    return prompt.strip()
+
+
+def judge_responses(
+    task_name, query, model_a_name, model_a_response, model_b_name, model_b_response, judge_model="gpt-4o"
+):
     """
     Sends the comparison prompt to OpenAI and returns the winner model name.
     """
+    if task_name == "essay_writing":
+        build_comparison_prompt = build_comparison_prompt_essay_writing
+        call_openai_api = call_openai_api_essay_writing
+    elif task_name == "summarization":
+        build_comparison_prompt = build_comparison_prompt_summarization
+        call_openai_api = call_openai_api_summarization
     prompt = build_comparison_prompt(query, model_a_name, model_a_response, model_b_name, model_b_response)
     judge_reply = call_openai_api(prompt, model=judge_model).strip()
 
@@ -172,7 +222,7 @@ def judge_responses(query, model_a_name, model_a_response, model_b_name, model_b
         return None
 
 
-def run_elo_simulation(data_dict, num_matches=1000, k_factor=4, judge_model="gpt-3.5-turbo"):
+def run_elo_simulation(task_name, data_dict, num_matches=1000, k_factor=4, judge_model="gpt-3.5-turbo"):
     """
     Runs the Elo simulation. Randomly samples pairs from the loaded data,
     calls the judge, updates Elo ratings, and returns the final scores.
@@ -203,7 +253,7 @@ def run_elo_simulation(data_dict, num_matches=1000, k_factor=4, judge_model="gpt
         assert query_a == query_b
 
         winner = judge_responses(
-            query_a, model_a_name, model_a_response, model_b_name, model_b_response, judge_model=judge_model
+            task_name, query_a, model_a_name, model_a_response, model_b_name, model_b_response, judge_model=judge_model
         )
 
         if winner is None:
@@ -292,8 +342,8 @@ def plot_elo_scores(elo_scores, output_path):
     plt.savefig(output_path)
 
 
-def run_sim(iteration, num_matches, generation_dir, output_dir, exp_name, separation_regex):
-    print(f"Running Elo simulation for iteration {iteration}...")
+def run_sim(task_name, iteration, num_matches, generation_dir, output_dir, exp_name, separation_regex):
+    print(f"{task_name}: Running Elo simulation for iteration {iteration}...")
 
     jsonl_paths = {k: f"{generation_dir}/{k}.test.generations.jsonl" for k in model_names_to_annon.keys()}
 
@@ -304,6 +354,7 @@ def run_sim(iteration, num_matches, generation_dir, output_dir, exp_name, separa
     print(f"len(data_dict[{one_key}]): {len(data_dict[one_key])}")
 
     final_elo_scores, elo_results = run_elo_simulation(
+        task_name,
         data_dict,
         num_matches=num_matches,
         k_factor=4,
@@ -358,12 +409,16 @@ def merge_results(output_dir: str, exp_name: str):
 
 if __name__ == "__main__":
     client = openai.OpenAI(api_key=os.environ["OPENAI_KEY"])
-    generation_dir = "results/policy-1.5b/generations/essay_writing"
-    output_dir = "results/policy-1.5b/elo_scores/essay_writing"
-    separation_regex = r"user(.+?)Instructions:(.+?)Your Writing:"
+    task_name = "summarization"  # "essay_writing"
+
+    generation_dir = f"results/policy-1.5b/generations/{task_name}"
+    output_dir = f"results/policy-1.5b/elo_scores/{task_name}"
+    if task_name == "essay_writing":
+        separation_regex = r"user(.+?)Instructions:(.+?)Your Writing:"
+    elif task_name == "summarization":
+        separation_regex = r"You are a helpful assistant\.\nuser(.+?)Bill:\n```(.+?)```"
     os.makedirs(output_dir, exist_ok=True)
 
     for i in range(1, 6):
-        run_sim(i, num_matches, generation_dir, output_dir, exp_name, separation_regex)
-
+        run_sim(task_name, i, num_matches, generation_dir, output_dir, exp_name, separation_regex)
     merge_results(output_dir, exp_name)

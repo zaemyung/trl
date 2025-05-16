@@ -26,9 +26,9 @@ SCRIPT="$trl_dir/examples/scripts/mpo.py"
 
 WANDB_ENTITY="iterater"
 WANDB_PROJECT="mpo-new"
-DATASET="ethical_reasoning"
-TASK="ethical_reasoning"
-PROMPT_DIR="$trl_dir/trl/extras/mpo/prompts/ethical_reasoning"
+DATASET="math_reasoning"
+TASK="math_reasoning"
+PROMPT_DIR="$trl_dir/trl/extras/mpo/prompts/math_reasoning"
 
 ###############################################################################
 #  Main runner
@@ -57,7 +57,7 @@ run_experiment() {
         model_name="${rubric_type}-${rm}"
     fi
 
-    local exp_name="${policy_model}-summ-${exp_type}-${model_name}"
+    local exp_name="${policy_model}-math-${exp_type}-${model_name}"
     local output_dir="$trl_dir/models/${policy_model}/${TASK}/${exp_type}/${model_name}"
     if [ -d $output_dir ]; then
         printf "$output_dir already exists. Skipped.\n"
@@ -89,11 +89,11 @@ run_experiment() {
     # ------------------------------------------------------------------------
     #  Spin-up RM & MRM servers and wait for them to be ready
     # ------------------------------------------------------------------------
-    bash "$trl_dir/scripts/mpo_experiments/launch_rm_mrm.sh" \
-        "$pem_key" "$remote_host" \
-        "${rm^^}" "${mrm^^}"
+    # bash "$trl_dir/scripts/mpo_experiments/launch_rm_mrm.sh" \
+    #     "$pem_key" "$remote_host" \
+    #     "${rm^^}" "${mrm^^}"
 
-    sleep 5
+    # sleep 5
 
     # ------------------------------------------------------------------------
     # Launch policy fine-tuning
@@ -114,13 +114,13 @@ run_experiment() {
         --save_n_updates 20 \
         --num_mpo_samples 16 \
         --num_mini_batches 1 \
-        --per_device_train_batch_size 1 \
+        --per_device_train_batch_size 2 \
         --gradient_accumulation_steps "$grad_acc_steps" \
         --local_rollout_forward_batch_size 48 \
-        --total_episodes 10000 \
+        --total_episodes 7500 \
         --model_name_or_path "Qwen/Qwen2.5-1.5B-Instruct" \
         --sft_model_path   "Qwen/Qwen2.5-1.5B-Instruct" \
-        --response_length 600 \
+        --response_length 1000 \
         --missing_eos_penalty 1.0 \
         --kl_coef 0.02 \
         --stop_token "eos" \

@@ -81,6 +81,15 @@ if is_wandb_available():
     import wandb
 
 
+def to_serializable(val):
+    if isinstance(val, torch.Tensor):
+        if val.numel() == 1:
+            return val.item()  # Convert scalar tensor to int/float
+        else:
+            return val.tolist()  # Convert multi-element tensor to list
+    return val  # Leave other types unchanged
+
+
 INVALID_LOGPROB = 1.0
 
 
@@ -253,7 +262,7 @@ class MPOTrainer(Trainer):
             self.rm_kwargs["cluster_size"] = self.cluster_size
         self.mrm_kwargs = {
             "task_name": self.args.task_name,
-            "meta_reward_model_address": self.meta_reward_model_address,
+            "reward_model_address": self.meta_reward_model_address,
             "experiment_directory": self.experiment_directory,
         }
         if self.args.task_name == "math_reasoning":
@@ -836,7 +845,7 @@ class MPOTrainer(Trainer):
                 # Save all rollouts (i.e., `gatherings`)
                 keys = list(gatherings.keys())
                 zipped_values = zip(*gatherings.values())
-                rollouts = [dict(zip(keys, values)) for values in zipped_values]
+                rollouts = [dict(zip(keys, [to_serializable(v) for v in values])) for values in zipped_values]
                 rollouts_path = os.path.join(self.rollouts_directory, f"rollouts-{update}-{current_device}.json")
                 with open(rollouts_path, "w") as f:
                     f.write(f"{json.dumps(rollouts, indent=4)}")

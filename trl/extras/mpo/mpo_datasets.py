@@ -84,8 +84,8 @@ def prepare_mathematical_reasoning_dataset(tokenizer, split: str, data_file_path
             "input_ids": input_ids,
             "lengths": len(input_ids),
             "answer": tokenizer.encode(answer.strip()),
-            "domain_id": sample["domain_id"],
-            "cluster_id": sample["cluster_id"],
+            "domain_ids": sample["domain_id"],
+            "cluster_ids": sample["cluster_id"],
             "solution": tokenizer.encode(sample["solution"], add_special_tokens=False, padding=False),
         }
 

@@ -6,6 +6,7 @@ peft
 python-dotenv
 python-notification
 rich
+rouge-score
 sglang
 transformers>=4.46.0
 wandb

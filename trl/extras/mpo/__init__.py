@@ -200,18 +200,26 @@ class MetaRewardModel(RewardModel):
         )
         self.rollouts_directory = os.path.join(self.experiment_directory, "rollouts")
         env = jinja2.Environment(loader=jinja2.FileSystemLoader(self.prompts_directory))
-        mrm_prescreen_filename = kwargs.get("mrm_prescreen_filename", "mrm_prescreen.txt")
-        mrm_analyze_filename = kwargs.get("mrm_analyze_filename", "mrm_analyze.txt")
-        mrm_refine_filename = kwargs.get("mrm_refine_filename", "mrm_refine.txt")
-        mrm_merge_filename = kwargs.get("mrm_merge_filename", "mrm_merge.txt")
-        if mrm_prescreen_filename is not None:
+        mrm_prescreen_filename = "mrm_prescreen.txt"
+        mrm_analyze_filename = "mrm_analyze.txt"
+        mrm_refine_filename = "mrm_refine.txt"
+        mrm_merge_filename = "mrm_merge.txt"
+        try:
             self.prescreen_template = env.get_template(mrm_prescreen_filename)
-        if mrm_analyze_filename is not None:
+        except jinja2.TemplateNotFound as e:
+            print(f"Template {e}, Skipped.")
+        try:
             self.analyze_template = env.get_template(mrm_analyze_filename)
-        if mrm_refine_filename is not None:
+        except jinja2.TemplateNotFound as e:
+            print(f"Template {e}, Skipped.")
+        try:
             self.refine_template = env.get_template(mrm_refine_filename)
-        if mrm_merge_filename is not None:
+        except jinja2.TemplateNotFound as e:
+            print(f"Template {e}, Skipped.")
+        try:
             self.merge_template = env.get_template(mrm_merge_filename)
+        except jinja2.TemplateNotFound as e:
+            print(f"Template {e}, Skipped.")
 
     @function
     def mrm_prescreen(s, prescreen_prompt: str):
