@@ -342,13 +342,12 @@ def plot_elo_scores(elo_scores, output_path):
     plt.savefig(output_path)
 
 
-def run_sim(task_name, iteration, num_matches, generation_dir, output_dir, exp_name, separation_regex):
+def run_sim(task_name, iteration, num_matches, generation_dir, output_dir, exp_name, separation_regex, judge_model):
     print(f"{task_name}: Running Elo simulation for iteration {iteration}...")
 
     jsonl_paths = {k: f"{generation_dir}/{k}.test.generations.jsonl" for k in model_names_to_annon.keys()}
 
     data_dict = load_data(jsonl_paths, separation_regex)
-    openai_model = "gpt-4o"
     one_key = list(data_dict.keys())[0]
     print(f"len(data_dict): {len(data_dict)}")
     print(f"len(data_dict[{one_key}]): {len(data_dict[one_key])}")
@@ -358,7 +357,7 @@ def run_sim(task_name, iteration, num_matches, generation_dir, output_dir, exp_n
         data_dict,
         num_matches=num_matches,
         k_factor=4,
-        judge_model=openai_model,
+        judge_model=judge_model,
     )
 
     final_elo_scores = {annon_to_model_names[k]: v for k, v in final_elo_scores.items()}
@@ -409,6 +408,9 @@ def merge_results(output_dir: str, exp_name: str):
 
 if __name__ == "__main__":
     client = openai.OpenAI(api_key=os.environ["OPENAI_KEY"])
+    # client = openai.OpenAI(api_key=os.environ["ANTHROPIC_API_KEY"], base_url="https://api.anthropic.com/v1/")
+    judge_model = "gpt-4o"
+    # judge_model = "claude-3-7-sonnet-20250219"
     task_name = "summarization"  # "essay_writing"
 
     generation_dir = f"results/policy-1.5b/generations/{task_name}"
@@ -420,5 +422,5 @@ if __name__ == "__main__":
     os.makedirs(output_dir, exist_ok=True)
 
     for i in range(1, 6):
-        run_sim(task_name, i, num_matches, generation_dir, output_dir, exp_name, separation_regex)
+        run_sim(task_name, i, num_matches, generation_dir, output_dir, exp_name, separation_regex, judge_model)
     merge_results(output_dir, exp_name)

@@ -242,7 +242,7 @@ if __name__ == "__main__":
     print(len(query_to_gold_answer))
 
     gen_dir = "results/policy-1.5b/generations/math_reasoning"
-    model_names = ["32b_32b", "autoprompt-32b", "iter0-32b", "base"]
+    model_names = ["32b_32b", "autoprompt-32b", "iter0-new-32b", "32b_32b-new", "base"]
 
     for model_n in model_names:
         path = os.path.join(gen_dir, f"{model_n}.test.generations.jsonl")
